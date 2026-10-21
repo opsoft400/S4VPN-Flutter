@@ -11,6 +11,12 @@ pluginManagement {
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 
     repositories {
+        // The Myket mirror is listed first: the build has to work
+        // on networks where dl.google.com is unreachable or filtered.
+        maven { url = uri("https://maven.myket.ir") }
+        maven { url = uri("https://maven.aliyun.com/repository/gradle-plugin") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        maven { url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public") }
         google()
         mavenCentral()
         gradlePluginPortal()

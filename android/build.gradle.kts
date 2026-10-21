@@ -1,5 +1,9 @@
 allprojects {
     repositories {
+        // Mirrors first, then the originals: see settings.gradle.kts.
+        maven { url = uri("https://maven.myket.ir") }
+        maven { url = uri("https://maven.aliyun.com/repository/public") }
+        maven { url = uri("https://mirrors.cloud.tencent.com/nexus/repository/maven-public") }
         google()
         mavenCentral()
     }
