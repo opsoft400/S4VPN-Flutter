@@ -1,0 +1,46 @@
+name: s4vpn
+description: S4VPN — a multi-engine VPN client powered by SOFT400.
+publish_to: "none"
+
+# versionName comes from native/keystore/keystore.properties (VERSION_NAME).
+version: 1.26.8+1268
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/S4VPN.png
+    - assets/images/whitevpn_icon.png
+    - assets/images/S4VPN-UI.html
+
+  fonts:
+    - family: Vazirmatn
+      fonts:
+        - asset: assets/fonts/Vazirmatn-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Vazirmatn-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Vazirmatn-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Vazirmatn-Bold.ttf
+          weight: 700
+    - family: PlexMono
+      fonts:
+        - asset: assets/fonts/PlexMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/PlexMono-Medium.ttf
+          weight: 500

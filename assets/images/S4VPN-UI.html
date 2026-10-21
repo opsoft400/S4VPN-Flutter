@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="white">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>S4VPN-UI</title>
+<link rel="icon" type="image/png" href="S4VPN.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap');
+
+:root{
+  --bg:#050B1C;
+  --bg2:#08122B;
+  --card:rgba(255,255,255,.04);
+  --line:rgba(110,150,255,.20);
+  --ink:#EAF1FF;
+  --mute:#8FA0C8;
+  --blue:#2F8CFF;
+  --teal:#2EE6C1;
+  --neon:#18B4FF;
+  --purple:#9B6BFF;
+  --red:#FF6B6B;
+  --amber:#FFB84D;
+  --r-md:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Vazirmatn',Tahoma,system-ui,sans-serif;
+  background:#02060F;color:var(--ink);
+  display:flex;align-items:center;justify-content:center;min-height:100dvh;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--neon);outline-offset:3px;border-radius:10px}
+
+.phone{
+  width:390px;height:800px;max-height:96dvh;background:var(--bg);
+  border-radius:44px;box-shadow:0 0 0 10px #0B1226,0 0 0 11px rgba(110,150,255,.25),0 30px 80px rgba(47,140,255,.18);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;
+}
+@media(max-width:430px){
+  .phone{width:100%;height:100dvh;max-height:none;border-radius:0;box-shadow:none}
+}
+
+.snow{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.sky{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(520px 380px at 50% 34%, rgba(47,140,255,.22), transparent 70%),
+    radial-gradient(300px 260px at 8% 46%, rgba(24,180,255,.10), transparent 70%),
+    radial-gradient(300px 260px at 92% 46%, rgba(155,107,255,.12), transparent 70%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 60%);
+  transition:opacity .8s;
+}
+.phone[data-state="connected"] .sky{
+  background:
+    radial-gradient(520px 420px at 50% 34%, rgba(24,180,255,.26), transparent 70%),
+    radial-gradient(300px 260px at 8% 46%, rgba(24,180,255,.18), transparent 70%),
+    radial-gradient(300px 260px at 92% 46%, rgba(155,107,255,.20), transparent 70%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 60%);
+}
+
+header{position:relative;z-index:2;padding:22px 22px 4px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{width:42px;height:42px;object-fit:cover;border-radius:12px;background:#0B1226;filter:drop-shadow(0 0 10px rgba(47,140,255,.45))}
+.brand b{font-weight:800;font-size:22px;letter-spacing:.2px;direction:ltr;display:block;line-height:1.2}
+.brand small{display:block;font-weight:400;font-size:11px;color:var(--mute);direction:ltr;text-align:right}
+.pill{
+  font-size:12px;font-weight:500;padding:6px 12px;border-radius:99px;
+  background:var(--card);border:1px solid var(--line);display:flex;align-items:center;gap:7px;
+}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--mute);transition:background .4s,box-shadow .4s}
+.phone[data-state="connected"] .dot{background:var(--neon);box-shadow:0 0 10px var(--neon)}
+.phone[data-state="connecting"] .dot{background:var(--amber);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.3}}
+
+main{position:relative;z-index:1;flex:1;overflow-y:auto;overflow-x:hidden}
+.screen{display:none;padding:0 22px 24px;min-height:100%}
+.screen.on{display:block}
+
+/* ---------- home: the doorway ---------- */
+.stage{display:flex;flex-direction:column;align-items:center;padding-top:12px}
+.chips{display:flex;gap:8px;margin-bottom:2px}
+.chip{
+  font-size:12px;font-weight:500;padding:5px 12px;border-radius:99px;border:1px solid var(--line);color:var(--mute);
+  background:var(--card);transition:.3s;direction:ltr;
+}
+.chip.on[data-t="wg"]{color:var(--blue);border-color:var(--blue);box-shadow:0 0 14px rgba(47,140,255,.35)}
+.chip.on[data-t="masque"]{color:#2EE6C1;border-color:#2EE6C1;box-shadow:0 0 14px rgba(46,230,193,.35)}
+.chip.on[data-t="gool"]{color:var(--purple);border-color:var(--purple);box-shadow:0 0 14px rgba(155,107,255,.4)}
+
+.orb{position:relative;width:250px;height:250px;margin:6px 0 4px}
+.orbsvg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ring-track{fill:none;stroke:var(--line);stroke-width:1.5}
+.ring-dots{transform-origin:125px 125px;animation:spin 26s linear infinite}
+.ring-dots.fast{animation-duration:2.4s}
+.ring-dots circle{fill:var(--blue);filter:drop-shadow(0 0 5px var(--blue));transition:fill .6s}
+.phone[data-state="connecting"] .ring-dots circle{fill:var(--amber);filter:drop-shadow(0 0 5px var(--amber))}
+.phone[data-state="connected"] .ring-dots circle{fill:var(--neon);filter:drop-shadow(0 0 5px var(--neon))}
+.phone[data-state="connected"] .ring-dots{animation-duration:60s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ring-solid{
+  fill:none;stroke:var(--neon);stroke-width:3;stroke-linecap:round;filter:drop-shadow(0 0 8px var(--neon));
+  stroke-dasharray:640;stroke-dashoffset:640;transition:stroke-dashoffset 1.1s cubic-bezier(.3,.7,.2,1);
+  transform:rotate(-90deg);transform-origin:125px 125px;
+}
+.phone[data-state="connected"] .ring-solid{stroke-dashoffset:0}
+.power{
+  position:absolute;inset:44px;border-radius:50%;
+  background:radial-gradient(circle at 50% 30%,#12244F,#091330 70%);
+  border:1px solid var(--line);
+  box-shadow:0 0 30px rgba(47,140,255,.35),inset 0 0 22px rgba(47,140,255,.18);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  transition:transform .2s,box-shadow .5s,border-color .5s;
+}
+.power:active{transform:scale(.96)}
+.power svg{width:44px;height:44px;stroke:var(--blue);fill:none;stroke-width:2.4;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--blue));transition:stroke .5s,filter .5s}
+.power span{font-size:14px;font-weight:700}
+.phone[data-state="connecting"] .power{border-color:var(--amber);box-shadow:0 0 34px rgba(255,184,77,.4),inset 0 0 22px rgba(255,184,77,.15)}
+.phone[data-state="connecting"] .power svg{stroke:var(--amber);filter:drop-shadow(0 0 6px var(--amber))}
+.phone[data-state="connected"] .power{border-color:var(--neon);box-shadow:0 0 50px rgba(24,180,255,.65),inset 0 0 28px rgba(24,180,255,.28)}
+.phone[data-state="connected"] .power svg{stroke:var(--neon);filter:drop-shadow(0 0 8px var(--neon))}
+.status{margin-top:14px;text-align:center}
+.status h1{font-size:25px;font-weight:800;min-height:38px}
+.status p{color:var(--mute);font-size:14px;margin-top:2px;min-height:22px}
+.timer{font-variant-numeric:tabular-nums;direction:ltr;display:inline-block;color:var(--neon)}
+.steps{margin-top:12px;display:flex;gap:6px;height:4px;width:220px;opacity:0;transition:opacity .3s;margin-inline:auto}
+.phone[data-state="connecting"] .steps{opacity:1}
+.steps i{flex:1;border-radius:9px;background:var(--line);transition:background .4s,box-shadow .4s}
+.steps i.done{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+
+.readout{
+  margin-top:20px;width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);
+}
+.readout div{padding:13px 8px;text-align:center}
+.readout div+div{border-inline-start:1px solid var(--line)}
+.readout b{display:block;font-size:18px;font-weight:700;direction:ltr;font-variant-numeric:tabular-nums}
+.readout div:nth-child(1) b{color:var(--neon)}
+.readout div:nth-child(2) b{color:var(--blue)}
+.readout div:nth-child(3) b{color:var(--purple)}
+.readout span{font-size:12px;color:var(--mute)}
+
+.proxy{
+  margin-top:12px;width:100%;display:flex;align-items:center;justify-content:space-between;
+  background:var(--card);border:1px dashed var(--line);border-radius:var(--r-md);padding:11px 16px;font-size:13px;color:var(--mute);
+}
+.proxy code{direction:ltr;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--ink)}
+.proxy button{font-size:12px;font-weight:600;color:var(--neon);padding:4px 8px}
+
+/* ---------- settings ---------- */
+h2{font-size:20px;font-weight:800;margin:10px 0 16px}
+.group{margin-bottom:22px}
+.group>label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.group>small{display:block;font-size:12px;color:var(--mute);margin-bottom:10px;line-height:1.7}
+.seg{display:grid;gap:6px;background:rgba(255,255,255,.05);border:1px solid var(--line);padding:5px;border-radius:14px}
+.seg.c3,.seg.c5{grid-template-columns:repeat(3,1fr)}
+.seg.c2{grid-template-columns:repeat(2,1fr)}
+.seg button{padding:10px 4px;border-radius:10px;font-size:13px;font-weight:500;color:var(--mute);transition:.2s}
+.seg button[aria-pressed="true"]{
+  color:#fff;font-weight:700;background:linear-gradient(135deg,#1F6FE0,#2F8CFF);box-shadow:0 0 16px rgba(47,140,255,.5);
+}
+.row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px}
+.row:last-child{border-bottom:0}
+.row small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.switch{width:46px;height:28px;border-radius:99px;background:rgba(255,255,255,.14);position:relative;flex:none;transition:background .25s,box-shadow .25s}
+.switch::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:inset-inline-start .25s}
+.switch[aria-checked="true"]{background:var(--blue);box-shadow:0 0 14px rgba(47,140,255,.5)}
+.switch[aria-checked="true"]::after{inset-inline-start:21px}
+.field{
+  direction:ltr;text-align:left;width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+  background:rgba(255,255,255,.05);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;color:var(--ink);
+}
+.field:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(47,140,255,.25)}
+
+/* ---------- log ---------- */
+.log{
+  background:rgba(2,6,16,.7);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;line-height:2;direction:ltr;text-align:left;min-height:340px;
+}
+.log p{color:var(--mute)}
+.log p.ok{color:var(--neon)}
+.log p.warn{color:var(--amber)}
+.log p.err{color:var(--red)}
+.empty{color:var(--mute);font-family:'Vazirmatn',sans-serif;direction:rtl;text-align:center;padding:90px 10px;font-size:14px}
+.log-actions{display:flex;gap:10px;margin-top:12px}
+.btn{flex:1;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:14px;font-weight:600}
+
+/* ---------- tab bar ---------- */
+nav{
+  position:relative;z-index:3;display:grid;grid-template-columns:repeat(3,1fr);
+  background:rgba(5,11,28,.85);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding:8px 12px calc(10px + env(safe-area-inset-bottom));
+}
+nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;font-size:12px;color:var(--mute);font-weight:500;border-radius:12px}
+nav button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button[aria-selected="true"]{color:#fff;font-weight:700}
+nav button[aria-selected="true"] svg{stroke:var(--blue);filter:drop-shadow(0 0 6px var(--blue))}
+
+.toast{
+  position:absolute;z-index:10;bottom:92px;left:50%;transform:translate(-50%,20px);
+  background:#0F1B3D;border:1px solid var(--line);color:#fff;font-size:13px;padding:10px 18px;border-radius:99px;
+  opacity:0;pointer-events:none;transition:.3s;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.sim{
+  position:fixed;top:12px;inset-inline-start:12px;font-size:12px;color:var(--mute);
+  background:rgba(255,255,255,.06);border:1px solid var(--line);padding:6px 12px;border-radius:99px;
+}
+@media(max-width:430px){.sim{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+[hidden]{display:none!important}
+
+/* ---------- engine picker (home) ---------- */
+.engines{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:100%;margin-bottom:4px}
+.eng{
+  --ec:#18B4FF;
+  border:1px solid var(--line);background:var(--card);border-radius:11px;padding:6px 2px 5px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--mute);transition:.3s;min-width:0;
+}
+.eng[data-e="psiphon"]{--ec:#9B6BFF}
+.eng[data-e="tor"]{--ec:#FF6FC8}
+.eng svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.eng b{font-size:11px;font-weight:700;direction:ltr;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.eng small{font-size:9.5px;line-height:1.15;white-space:nowrap}
+.eng[aria-pressed="true"]{
+  color:#fff;border-color:var(--ec);background:rgba(255,255,255,.07);
+  box-shadow:0 0 18px color-mix(in srgb,var(--ec) 45%,transparent),inset 0 0 14px color-mix(in srgb,var(--ec) 22%,transparent);
+}
+.eng[aria-pressed="true"] svg{stroke:var(--ec);filter:drop-shadow(0 0 5px var(--ec))}
+.phone:not([data-state="idle"]) .eng:not([aria-pressed="true"]){opacity:.45}
+
+.route{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:12px;color:var(--mute)}
+.route .node{padding:3px 10px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.route i{font-style:normal;color:var(--blue)}
+.proxies{width:100%}
+
+/* ---------- accordions ---------- */
+.sec{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:12px;overflow:hidden}
+.sec>summary{list-style:none;padding:14px 16px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.sec>summary::-webkit-details-marker{display:none}
+.sec>summary::after{content:"";width:8px;height:8px;border:solid var(--mute);border-width:0 2px 2px 0;transform:rotate(45deg);transition:transform .2s;margin-top:-4px}
+.sec[open]>summary::after{transform:rotate(-135deg);margin-top:4px}
+.sec-body{padding:4px 16px 6px}
+.sec-note{font-size:12px;color:var(--mute);line-height:1.9;padding:0 16px 12px}
+.sec .group{margin-bottom:18px}
+.flag{direction:ltr;display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;font-weight:400;color:var(--blue);background:rgba(47,140,255,.12);padding:1px 6px;border-radius:6px;margin-inline-start:6px;vertical-align:1px}
+.seg button.dis{opacity:.3;pointer-events:none}
+textarea.field{min-height:84px;resize:vertical;line-height:1.7}
+.sec .row{padding:12px 0}
+.hint{font-size:12px;color:var(--mute);line-height:1.8;margin:-4px 0 14px}
+.warn-note{border:1px solid rgba(255,184,77,.4);background:rgba(255,184,77,.08);color:#FFD08A;border-radius:12px;padding:10px 14px;font-size:12px;line-height:1.8;margin-bottom:14px}
+
+.eng svg.s4mini{width:30px;height:30px;stroke:none;filter:grayscale(.6) opacity(.75);transition:filter .3s}
+.eng[aria-pressed="true"] svg.s4mini{stroke:none;filter:drop-shadow(0 0 6px var(--ec))}
+.eng[data-e="white"]{--ec:#F2F5F8}
+html[data-theme="white"] .eng[data-e="white"]{--ec:#007E50}
+.eng img.wmini{width:19px;height:19px;object-fit:cover;border-radius:6px;opacity:.75;filter:grayscale(.5);transition:.3s}
+.eng[aria-pressed="true"] img.wmini{opacity:1;filter:none;box-shadow:0 0 10px color-mix(in srgb,var(--ec) 55%,transparent)}
+/* White uses the real WhiteVPN launcher icon, so it is shown as a rounded
+   app tile rather than a stroked glyph, and it must not be desaturated. */
+.eng img.whicon{
+  width:22px;height:22px;border-radius:6px;object-fit:cover;opacity:.9;
+  filter:none;box-shadow:0 0 0 1px color-mix(in srgb,var(--ec) 40%,transparent);
+}
+.eng[aria-pressed="true"] img.whicon{
+  opacity:1;filter:none;
+  box-shadow:0 0 0 1px var(--ec),0 0 12px color-mix(in srgb,var(--ec) 60%,transparent);
+}
+/* S4 (SOFT400) uses the S4VPN launcher icon, same app-tile look as White */
+.eng[data-e="s4"]{--ec:#2FA8FF}
+html[data-theme="white"] .eng[data-e="s4"]{--ec:#0A6CC4}
+.eng img.s4icon{
+  width:22px;height:22px;border-radius:6px;object-fit:cover;opacity:.9;
+  filter:none;box-shadow:0 0 0 1px color-mix(in srgb,var(--ec) 40%,transparent);
+}
+.eng[aria-pressed="true"] img.s4icon{
+  opacity:1;filter:none;
+  box-shadow:0 0 0 1px var(--ec),0 0 12px color-mix(in srgb,var(--ec) 60%,transparent);
+}
+
+/* ---------- made-with line ---------- */
+.made{
+  margin-top:14px;text-align:center;font-size:12px;font-weight:500;line-height:1.9;
+  color:var(--neon);text-shadow:0 0 10px color-mix(in srgb,var(--neon) 55%,transparent);
+}
+.made .heart{
+  display:inline-block;color:#FF1B4D;font-size:13px;line-height:1;vertical-align:-1px;
+  text-shadow:0 0 8px #FF1B4D,0 0 16px rgba(255,27,77,.9),0 0 26px rgba(255,27,77,.6);
+  animation:beat 1.4s ease-in-out infinite;
+}
+@keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.22)}28%{transform:scale(1)}42%{transform:scale(1.16)}56%{transform:scale(1)}}
+
+/* ---------- reset to defaults (outside the accordions) ---------- */
+.reset-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+  margin-top:14px;padding:13px 16px;border-radius:14px;cursor:pointer;
+  font-family:inherit;font-size:13.5px;font-weight:700;
+  color:var(--danger);background:color-mix(in srgb,var(--danger) 10%,transparent);
+  border:1px solid color-mix(in srgb,var(--danger) 40%,transparent);
+  transition:.25s;
+}
+.reset-btn svg{
+  width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round;flex:none;
+}
+.reset-btn:hover{background:color-mix(in srgb,var(--danger) 18%,transparent)}
+.reset-btn:active{transform:scale(.985)}
+.reset-btn:disabled{opacity:.5;cursor:default}
+.reset-note{
+  margin:8px 2px 0;font-size:11.5px;line-height:1.8;color:var(--mute);text-align:center;
+}
+html[data-theme="white"] .made{text-shadow:none;color:#0A5CD0}
+html[data-theme="white"] .made .heart{color:#FF1B4D;text-shadow:0 0 7px rgba(255,27,77,.75),0 0 14px rgba(255,27,77,.45)}
+
+/* ---------- server list (White engine) ---------- */
+.slist{display:flex;flex-direction:column;gap:2px;margin-top:2px}
+.srow{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;
+  border:1px solid transparent;background:var(--card);cursor:pointer;transition:.22s;text-align:start;
+}
+.srow:hover{border-color:var(--line)}
+.srow[aria-pressed="true"]{border-color:var(--green,var(--blue));background:rgba(0,126,80,.10)}
+html:not([data-theme="white"]) .srow[aria-pressed="true"]{background:rgba(46,230,193,.10)}
+.srow .flagc{font-size:17px;line-height:1;flex:none}
+.srow .nm{flex:1;min-width:0;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srow .tag{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:6px;background:var(--card);border:1px solid var(--line);color:var(--mute);flex:none}
+.srow .lat{font-size:12px;font-weight:600;direction:ltr;font-variant-numeric:tabular-nums;color:var(--mute);flex:none}
+.srow .lat.ok{color:var(--green,var(--neon))}
+html:not([data-theme="white"]) .srow .lat.ok{color:var(--teal)}
+.srow .lat.mid{color:var(--amber)}
+.srow .lat.bad{color:var(--red)}
+.srow[aria-pressed="true"] .nm{color:var(--ink)}
+.shead{display:flex;align-items:center;justify-content:space-between;margin:6px 0 8px}
+.shead b{font-size:13px;font-weight:700}
+.shead button{font-size:12px;font-weight:600;color:var(--green,var(--blue));padding:4px 8px}
+html:not([data-theme="white"]) .shead button{color:var(--teal)}
+.sbar{height:4px;border-radius:9px;background:var(--line);overflow:hidden;margin-top:8px}
+.sbar i{display:block;height:100%;width:0;background:var(--green,var(--blue));transition:width .3s}
+html:not([data-theme="white"]) .sbar i{background:var(--teal)}
+
+/* ---------- header actions + theme toggle ---------- */
+.head-actions{display:flex;align-items:center;gap:8px}
+.themeT{
+  width:34px;height:34px;flex:none;border-radius:99px;background:var(--card);
+  border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink);
+  transition:background .3s,border-color .3s,color .3s;
+}
+.themeT svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html[data-theme="white"] .ic-moon{display:none}
+html:not([data-theme="white"]) .ic-sun{display:none}
+
+/* =====================================================================
+   WHITE MODE · tokens exported from WhiteVPN-1.6.10 (design.md / tokens.css)
+   light: paper #F1F9F5 · paper-2 #ECF6F1 · paper-3 #E0EDE7
+   ink #0A1410 · ink-2 #495650 · rule #B9C8C1 · accent #007E50
+   error #CF4040 · amber #D08B00 · gradient #007E50 → #4BAE87
+   ===================================================================== */
+html[data-theme="white"]{
+  --bg:#F1F9F5;
+  --bg2:#ECF6F1;
+  --card:rgba(255,255,255,.78);
+  --line:#B9C8C1;
+  --ink:#0A1410;
+  --mute:#495650;
+  --blue:#007E50;
+  --teal:#00A36B;
+  --neon:#007E50;
+  --purple:#6D4AE0;
+  --red:#CF4040;
+  --amber:#D08B00;
+}
+html[data-theme="white"] body{background:linear-gradient(180deg,#F8FDFB,#ECF6F1)}
+html[data-theme="white"] .phone{
+  background:var(--bg);
+  box-shadow:0 0 0 10px #E0EDE7,0 0 0 11px rgba(0,126,80,.28),0 30px 80px rgba(0,126,80,.16);
+}
+html[data-theme="white"] .brand .logo{background:#E0EDE7;filter:drop-shadow(0 0 8px rgba(0,126,80,.35))}
+html[data-theme="white"] .sky{
+  background:
+    radial-gradient(520px 380px at 50% 34%, rgba(0,126,80,.12), transparent 70%),
+    radial-gradient(300px 260px at 8% 46%, rgba(0,163,107,.08), transparent 70%),
+    radial-gradient(300px 260px at 92% 46%, rgba(75,174,135,.10), transparent 70%),
+    linear-gradient(180deg,#F8FDFB,#ECF6F1 60%);
+}
+html[data-theme="white"] .phone[data-state="connected"] .sky{
+  background:
+    radial-gradient(520px 420px at 50% 34%, rgba(0,163,107,.18), transparent 70%),
+    radial-gradient(300px 260px at 8% 46%, rgba(0,126,80,.12), transparent 70%),
+    radial-gradient(300px 260px at 92% 46%, rgba(75,174,135,.14), transparent 70%),
+    linear-gradient(180deg,#F8FDFB,#ECF6F1 60%);
+}
+html[data-theme="white"] .power{
+  background:radial-gradient(circle at 50% 30%,#FFFFFF,#E9F5EF 70%);
+  box-shadow:0 0 30px rgba(0,126,80,.22),inset 0 0 22px rgba(0,126,80,.10);
+}
+html[data-theme="white"] .phone[data-state="connecting"] .power{
+  box-shadow:0 0 34px rgba(208,139,0,.35),inset 0 0 22px rgba(208,139,0,.14);
+}
+html[data-theme="white"] .phone[data-state="connected"] .power{
+  box-shadow:0 0 50px rgba(0,126,80,.35),inset 0 0 28px rgba(0,126,80,.16);
+}
+html[data-theme="white"] .seg{background:rgba(10,20,16,.045)}
+html[data-theme="white"] .seg button[aria-pressed="true"]{
+  color:#F4FAF7;background:linear-gradient(135deg,#007E50,#4BAE87);
+  box-shadow:0 0 16px rgba(0,126,80,.35);
+}
+html[data-theme="white"] .field{background:#FFFFFF}
+html[data-theme="white"] .field:focus{border-color:#007E50;box-shadow:0 0 0 3px rgba(0,126,80,.22)}
+html[data-theme="white"] .switch{background:rgba(10,20,16,.18)}
+html[data-theme="white"] .switch::after{box-shadow:0 1px 3px rgba(10,20,16,.35)}
+html[data-theme="white"] .switch[aria-checked="true"]{background:#007E50;box-shadow:0 0 14px rgba(0,126,80,.35)}
+html[data-theme="white"] nav{background:rgba(241,249,245,.92)}
+html[data-theme="white"] nav button[aria-selected="true"]{color:var(--ink)}
+html[data-theme="white"] .toast{background:#0A1410;border-color:#0A1410;color:#F1F9F5}
+html[data-theme="white"] .sim{background:rgba(10,20,16,.06);color:#495650}
+html[data-theme="white"] .eng{--ec:#00A36B}
+html[data-theme="white"] .eng[data-e="psiphon"]{--ec:#6D4AE0}
+html[data-theme="white"] .eng[data-e="tor"]{--ec:#E5207A}
+html[data-theme="white"] .eng[aria-pressed="true"]{
+  color:var(--ink);background:rgba(255,255,255,.92);
+  box-shadow:0 0 18px color-mix(in srgb,var(--ec) 35%,transparent),inset 0 0 14px color-mix(in srgb,var(--ec) 14%,transparent);
+}
+html[data-theme="white"] .flag{color:#007E50;background:rgba(0,126,80,.10)}
+html[data-theme="white"] .warn-note{border-color:rgba(208,139,0,.45);background:rgba(208,139,0,.10);color:#7A4E00}
+html[data-theme="white"] .log{background:#FFFFFF}
+html[data-theme="white"] .readout div:nth-child(1) b{color:#007E50}
+html[data-theme="white"] .readout div:nth-child(2) b{color:#1F6FE0}
+html[data-theme="white"] .readout div:nth-child(3) b{color:#6D4AE0}
+</style>
+
+
+<style id="settings-i18n-css">
+html[dir="ltr"] .phone .sec .row,
+html[dir="ltr"] .phone .hint,
+html[dir="ltr"] .phone .sec-note { text-align:left; }
+html[dir="rtl"] .phone .sec .row,
+html[dir="rtl"] .phone .hint,
+html[dir="rtl"] .phone .sec-note { text-align:right; }
+/* home screen texts: always centered, in every language */
+html .phone #s-home .status,
+html .phone #s-home .status h1,
+html .phone #s-home .status p,
+html .phone #s-home .route { text-align:center; }
+html[dir="ltr"] .phone .field,
+html[dir="ltr"] .phone label { direction:ltr; text-align:left; }
+html[dir="rtl"] .phone .field,
+html[dir="rtl"] .phone label { direction:rtl; text-align:right; }
+</style>
+
+</head>
+<body>
+<div class="sim">این فقط یک شبیه‌سازی ظاهری است؛ هیچ اتصال واقعی برقرار نمی‌شود</div>
+
+<div class="phone" id="phone" data-state="idle">
+  <div class="sky"></div>
+  <canvas class="snow" id="snow" aria-hidden="true"></canvas>
+
+  <header>
+    <div class="brand"><img class="logo" src="S4VPN.png" alt="S4"><div><b>S4VPN</b><small>Powered by SOFT400</small></div></div>
+    <div class="head-actions">
+      <div class="pill"><span class="dot"></span><span id="pillText">قطع</span></div>
+      <button class="themeT" id="themeT" aria-label="تغییر حالت نمایش" title="حالت وایت / حالت تاریک">
+        <svg class="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
+        <svg class="ic-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.2 8.2 0 0 1 9.5 4 8.4 8.4 0 1 0 20 14.5Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section class="screen on" id="s-home">
+      <div class="stage">
+        <div class="engines" role="group" aria-label="روش اتصال">
+          <button class="eng" data-e="aether" data-set="engine" data-v="aether" aria-pressed="true">
+            <svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1573 1370"
+     width="1573" height="1370">
+  <path
+    d="M 787 0
+       L 0 1367
+       L 244 1367
+       L 786 661
+       L 1328 1367
+       L 1572 1367
+       Z"
+    fill="#000000"/>
+</svg><b>aether</b><small>WARP</small>
+          </button>
+          <button class="eng" data-e="psiphon" data-set="engine" data-v="psiphon" aria-pressed="false">
+            <svg viewBox="0 0 24 24"><path d="M5 5v5a7 7 0 0 0 14 0V5M12 3v18M8 21h8"/></svg><b>Psiphon</b><small>سایفون</small>
+          </button>
+          <button class="eng" data-e="tor" data-set="engine" data-v="tor" aria-pressed="false">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><circle cx="12" cy="13" r="4.5"/><path d="M12 5V2"/></svg><b>Tor</b><small>تور</small>
+          </button>
+          <button class="eng" data-e="white" data-set="engine" data-v="white" aria-pressed="false">
+            <img class="whicon" src="whitevpn_icon.png" alt="White" width="22" height="22"><b>White</b><small>وایت</small>
+          </button>
+          <button class="eng" data-e="s4" data-set="engine" data-v="s4" aria-pressed="false">
+            <img class="s4icon" src="S4VPN.png" alt="S4VPN" width="22" height="22"><b>S4</b><small>SOFT400</small>
+          </button>
+        </div>
+
+        <div class="orb">
+          <svg class="orbsvg" viewBox="0 0 250 250" aria-hidden="true">
+            <circle class="ring-track" cx="125" cy="125" r="110"/>
+            <g class="ring-dots" id="ringDots">
+              <circle cx="125" cy="15" r="5"/><circle cx="235" cy="125" r="3.5"/><circle cx="125" cy="235" r="4.5"/>
+              <circle cx="15" cy="125" r="3"/><circle cx="203" cy="47" r="2.5"/><circle cx="47" cy="203" r="2.5"/>
+            </g>
+            <circle class="ring-solid" cx="125" cy="125" r="102"/>
+          </svg>
+          <button class="power" id="power" aria-label="اتصال یا قطع اتصال">
+            <svg viewBox="0 0 24 24"><path d="M12 3v8"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/></svg>
+            <span id="powerLabel">اتصال</span>
+          </button>
+        </div>
+
+        <div class="status">
+          <h1 id="title">آماده اتصال</h1>
+          <p id="sub">با یک لمس، تونل امن باز می‌شود</p>
+          <div class="steps" id="steps"><i></i><i></i><i></i><i></i></div>
+          <div class="route" id="route" aria-label="مسیر ترافیک"></div>
+        </div>
+
+        <p class="made" id="madeBy">ساخته شده با <span class="heart" aria-hidden="true">❤</span> توسط <b>سافت۴۰۰</b></p>
+
+        <div class="readout" id="readout">
+          <div><b id="ping">—</b><span id="pingLabel">تأخیر (ms)</span></div>
+          <div><b id="down">—</b><span id="downLabel">دریافت</span></div>
+          <div><b id="up">—</b><span id="upLabel">ارسال</span></div>
+        </div>
+
+        <div class="proxies" id="proxies"></div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="screen" id="s-settings">
+      <h2>تنظیمات</h2>
+
+      <details class="sec">
+        <summary>روش اتصال</summary>
+        <div class="sec-body" id="method-secs"></div>
+      </details>
+
+      <details class="sec">
+        <summary>تنظیمات پیشرفته</summary>
+        <div class="sec-body" id="adv-secs"></div>
+      </details>
+
+      <details class="sec" id="language-settings">
+        <summary>زبان</summary>
+        <div class="sec-body">
+          <div class="row">
+            <label>زبان برنامه</label>
+            <select class="field" id="languageSelect" style="width:100%;">
+              <option value="fa">فارسی</option>
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+              <option value="de">Deutsch</option>
+              <option value="ru">Русский</option>
+            </select>
+          </div>
+        </div>
+      </details>
+
+      <!-- Reset sits outside every accordion, as a standalone full-width action. -->
+      <button class="reset-btn" id="resetSettings" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>
+        <span>بازگشت به تنظیمات اولیه</span>
+      </button>
+      <p class="reset-note" id="resetNote" hidden>همه تنظیمات به حالت اولیه برگشت.</p>
+
+</section>
+<!-- ABOUT -->
+    <section class="screen" id="s-about">
+      <h2>درباره ما</h2>
+      <div class="sec" style="padding:18px 16px;">
+        <div style="font-size:17px;font-weight:800;margin-bottom:8px;">SOFT400</div>
+        <div style="font-size:13px;color:var(--mute);line-height:2;">
+          امیدوارم بتونید بشترین دورزدن تحریم و فیلتر رو باهم انجام بدین و کسی فیلتر نشه
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-go="home">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/></svg><span data-nav-label>خانه</span>
+    </button>
+    <button role="tab" aria-selected="false" data-go="settings">
+      <svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><path d="m5.64 5.64 2.12 2.12M16.24 16.24l2.12 2.12M18.36 5.64l-2.12 2.12M7.76 16.24l-2.12 2.12"/><circle cx="12" cy="12" r="4"/></svg><span data-nav-label>تنظیمات</span>
+    </button>
+    <button role="tab" aria-selected="false" data-go="about">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10v6"/><path d="M12 7.5h.01"/></svg><span data-nav-label>درباره ما</span>
+    </button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+const phone = $('#phone');
+
+/* ================= white mode (WhiteVPN tokens) ================= */
+function applyTheme(t){
+  document.documentElement.dataset.theme = t;
+  try{ localStorage.setItem('aether_theme', t); }catch(e){}
+  document.dispatchEvent(new CustomEvent('themechange'));
+}
+(function(){
+  let t = null;
+  try{ t = localStorage.getItem('aether_theme'); }catch(e){}
+  applyTheme(t === 'dark' ? 'dark' : 'white');
+})();
+$('#themeT').addEventListener('click', () => {
+  applyTheme(document.documentElement.dataset.theme === 'white' ? 'dark' : 'white');
+});
+
+/* ================= settings model (every option of Aether 2.1.0) ================= */
+const cfg = {
+  engine:'aether',
+  // WARP / Aether tunnel
+  transport:'masque', scan:'balanced', noize:'firewall', ip:'4',
+  peer:'', wiwOuter:'', wiwInner:'', mimOuter:'', mimInner:'', quick:true,
+  carrier:'h3', quicV2:true, h2Peer:'', fragment:false, fragSize:'16-32', fragDelay:'2-10', ech:false,
+  keepalive:'5', noRetry:false,
+  dataCheck:true, validateSecs:'10', startupSecs:'30', reconnectSecs:'2', dns:'1.1.1.1,1.0.0.1',
+  // Psiphon
+  psWay:'only', psShape:'auto', psRegion:'', psCdnIps:'', psCdnSni:'',
+  psBind:'127.0.0.1:1821', psHttp:'', psConfig:'', psDir:'', psBin:'',
+  // Tor
+  torWay:'only', torBridges:'auto', torBridgeLines:'', torBridgeFile:'', torPt:'', torPtDir:'',
+  torRelays:'auto', torRelayCount:'', torRelayPorts:'web',
+  torBind:'127.0.0.1:1820', torHttp:'', torDir:'',
+  // local proxies, exit, upstream
+  bind:'127.0.0.1:1819', httpOn:false, httpAddr:'127.0.0.1:1822',
+  exitLoc:'', exitLocSecs:'60', upstream:'', mark:'',
+  // routing
+  routeBlock:'', routeDirect:'', routeSniff:true, routeSniffMs:'400',
+  // White (WhiteVPN-style Mihomo core)
+  whSub:'builtin', whSubUrl:'', whServerPick:'auto', whServer:'auto', whSort:'low', whRoute:'sub',
+  whDns:'auto', whDnsAddr:'', whChain:'direct', whNoise:'off', whFronting:'',
+  whSplit:'off', whShare:false, whPass:'', whClean:true, whLan:true,
+  // zero trust
+  team:'', ztMethod:'email', ztEmail:'', ztId:'', ztSecret:'', ztJwt:'', gateway:false,
+  // limits, stats, identity
+  maxClients:'', halfClose:'30', tcpKeepalive:'60', tcpConnect:'30', perf:'medium',
+  stats:true, statsSecs:'60', reprovision:true
+};
+const touched = {};
+
+const T_NAMES = {masque:'MASQUE', wg:'WireGuard', gool:'WARP-in-WARP', mim:'MASQUE-in-MASQUE'};
+const wayOf   = () => cfg.engine==='psiphon' ? cfg.psWay : cfg.engine==='tor' ? cfg.torWay : 'warp';
+const isWhite = () => cfg.engine==='white';
+const reverse = () => cfg.engine!=='aether' && cfg.engine!=='white' && wayOf()==='reverse';
+const usesWarp = () => cfg.engine==='aether' || (cfg.engine!=='white' && wayOf()!=='only');
+const isT = (...t) => t.includes(cfg.transport);
+const isH2 = () => cfg.carrier==='h2';
+
+/* White engine: built-in server list (simulated subscription) */
+const WH_SERVERS = [
+  {f:'🇩🇪', n:'White · آلمان ۱',      t:'VLESS',   lat:64},
+  {f:'🇳🇱', n:'White · هلند ۱',      t:'VLESS',   lat:78},
+  {f:'🇫🇷', n:'White · فرانسه ۱',    t:'Trojan',  lat:112},
+  {f:'🇹🇷', n:'White · ترکیه ۱',     t:'Hysteria2',lat:148},
+  {f:'🇺🇸', n:'White · آمریکا ۱',    t:'VMess',   lat:196},
+  {f:'🇫🇮', n:'White · فنلاند ۱',    t:'VLESS',   lat:88},
+  {f:'🇬🇧', n:'White · بریتانیا ۱',  t:'Trojan',  lat:132},
+  {f:'🇨🇦', n:'White · کانادا ۱',    t:'VLESS',   lat:171}
+];
+
+const HELP = {
+  engine:{
+    aether:'کلاینت WARP کلادفلر؛ پیش‌فرض و معمولاً سریع‌ترین.',
+    psiphon:'ابزار عبور از فیلتر با روش‌های پوشش خودش، از جمله CDN.',
+    tor:'شبکه Tor؛ کندتر است ولی خروجی و مسیر کاملاً متفاوتی می‌دهد.',
+    s4:'حالت S4 ساخت SOFT400؛ تونل امن با آیکون رسمی S4VPN.'
+  },
+  transport:{
+    masque:'مدرن‌ترین حالت؛ ترافیک شبیه وب معمولی است. اگر مطمئن نیستید از اینجا شروع کنید.',
+    wg:'سبک و سریع؛ مناسب شبکه‌هایی که فقط آدرس‌های شناخته‌شده را می‌بندند.',
+    gool:'دو تونل WireGuard تو در تو؛ کندتر است ولی وقتی یک لایه کافی نیست کمک می‌کند.',
+    mim:'دو تونل MASQUE تو در تو؛ آدرس خروجی شما را عوض می‌کند.'
+  },
+  scan:{
+    turbo:'سریع؛ به اولین آدرسی که جواب بدهد راضی می‌شود.',
+    balanced:'پیش‌فرض؛ چند آدرس جمع می‌کند و سریع‌ترین را نگه می‌دارد.',
+    thorough:'کل بازه‌ها را می‌گردد؛ وقتی همه‌چیز بسته به نظر می‌رسد.',
+    stealth:'آرام و صبور؛ برای شبکه‌هایی که اسکن را تشخیص می‌دهند.',
+    verified:'فقط آدرس‌هایی که جواب‌دادنشان اندازه‌گیری شده. روی gool و mim دو هاپ را در بازه‌های جدا نگه می‌دارد.',
+    ironclad:'کندترین ولی مطمئن‌ترین؛ برای هر آدرس یک تونل و یک درخواست HTTP واقعی می‌سازد.'
+  },
+  noize:{
+    off:'بدون استتار؛ فقط برای شبکه باز یا آزمایش.',
+    light:'حداقل استتار با کمترین سربار.',
+    firewall:'پیش‌فرض MASQUE؛ متعادل و پیشنهادی برای ایران.',
+    balanced:'پیش‌فرض WireGuard و Gool؛ نقطه تعادل سرعت و پنهان‌کاری.',
+    gfw:'سنگین‌تر؛ وقتی firewall جواب نداد.',
+    aggressive:'سنگین‌ترین؛ وقتی دست‌دهی شناسایی می‌شود.'
+  },
+  psWay:{
+    only:'بدون WARP؛ پروکسی همان Psiphon ساده است.',
+    chain:'ترافیک اول از WARP و بعد از Psiphon می‌گذرد. شبکه شما Psiphon را نمی‌بیند و خروجی، Psiphon است.',
+    reverse:'ترافیک اول از Psiphon و بعد از WARP می‌گذرد. شبکه شما WARP را نمی‌بیند. فقط MASQUE روی HTTP/2.'
+  },
+  torWay:{
+    only:'بدون WARP؛ پروکسی همان Tor ساده است.',
+    chain:'ترافیک اول از WARP و بعد از Tor می‌گذرد. شبکه‌ای که Tor را مسدود کرده آن را نمی‌بیند. هم خروجی WARP و هم خروجی Tor در دسترس است.',
+    reverse:'ترافیک اول از Tor و بعد از WARP می‌گذرد. شبکه شما WARP را نمی‌بیند. فقط MASQUE روی HTTP/2 و Tor باید از قبل در دسترس باشد.'
+  },
+  psShape:{
+    auto:'Psiphon خودش بهترین را انتخاب می‌کند.',
+    cdn:'فقط meek پشت CDN؛ برای شبکه‌هایی که بقیه روش‌ها را می‌بندند.',
+    direct:'بدون پوشش CDN.'
+  },
+  torBridges:{
+    auto:'ابتدا مستقیم امتحان می‌کند؛ اگر نشد از BridgeDB پل می‌گیرد (obfs4، سپس webtunnel، سپس snowflake).',
+    force:'بدون امتحان مستقیم، یکراست سراغ پل‌ها می‌رود.',
+    never:'هرگز از پل استفاده نمی‌کند، حتی اگر شبکه بسته باشد.',
+    custom:'پل‌های خودتان را جایگزین پل‌های دریافتی می‌کنید.'
+  },
+  torRelays:{
+    auto:'رله‌های Onionoo کنار BridgeDB به‌عنوان پل ساده استفاده می‌شوند.',
+    only:'فقط رله‌های Onionoo؛ استخر بسیار بزرگ‌تری از BridgeDB است.',
+    off:'رله‌ها استفاده نمی‌شوند.'
+  },
+  whSub:{
+    builtin:'سابسکریپشن‌های داخلی وایت؛ بدون نیاز به لینک، همیشه به‌روز.',
+    personal:'لینک سابسکریپشن خودتان؛ YAML، JSON یا فهرست لینک پروکسی.'
+  },
+  whServer:{
+    auto:'هر بار سریع‌ترین سرور تست‌شده انتخاب می‌شود.',
+    manual:'یک سرور مشخص از فهرست انتخاب می‌کنید.'
+  },
+  whChain:{
+    direct:'ترافیک مستقیم به سرور انتخابی می‌رود.',
+    warp:'اول از WARP و بعد به سرور؛ وقتی سرور مستقیم بسته است.'
+  },
+  whRoute:{
+    sub:'قوانین داخل سابسکریپشن فعال استفاده می‌شود.',
+    iran:'فقط سایت‌های ایرانی از مسیر ایران رد می‌شوند؛ بقیه از وایت.',
+    global:'همه ترافیک از پروکسی رد می‌شود.'
+  },
+  whDns:{
+    auto:'پیکربندی خودکار بر اساس سابسکریپشن.',
+    doh:'DNS رمزنگاری‌شده روی HTTPS.',
+    dot:'DNS رمزنگاری‌شده روی TLS.'
+  },
+  whNoise:{
+    off:'بدون بسته اضافه؛ سربار صفر.',
+    light:'حداقل بسته‌های نویز برای گمراه‌کردن DPI.',
+    full:'بسته‌های کامل نویز و بسته‌های گمراه‌کننده DPI.'
+  },
+  whSplit:{
+    off:'همه برنامه‌ها از VPN رد می‌شوند.',
+    bypass:'برنامه‌های انتخاب‌شده بدون VPN کار می‌کنند.',
+    vpnonly:'فقط برنامه‌های انتخاب‌شده از VPN رد می‌شوند.'
+  }
+};
+
+/* ================= UI schema ================= */
+const yn = [[true,'روشن'],[false,'خاموش']];
+const NOIZE_OPTS = [['off','خاموش'],['light','سبک'],['firewall','Firewall'],['balanced','متعادل'],['gfw','GFW'],['aggressive','سنگین']];
+const SCAN_OPTS  = [['turbo','توربو'],['balanced','متعادل'],['thorough','دقیق'],['stealth','پنهان'],['verified','تأییدشده'],['ironclad','آهنین']];
+
+const METHOD = [
+  { id:'psiphon', title:'Psiphon (سایفون)', open:true, show:()=>cfg.engine==='psiphon', fields:[
+    {t:'seg',k:'psWay',label:'نحوه اتصال',flag:'--psiphon-only / --psiphon / --psiphon-reverse',cols:1,
+      opts:[['only','به‌تنهایی'],['chain','داخل WARP'],['reverse','WARP داخل Psiphon']],help:()=>HELP.psWay[cfg.psWay]},
+    {t:'seg',k:'psShape',label:'شکل اتصال',flag:'--psiphon-mode',cols:3,
+      opts:[['auto','خودکار'],['cdn','فقط CDN'],['direct','مستقیم']],help:()=>HELP.psShape[cfg.psShape]},
+    {t:'text',k:'psRegion',label:'کشور خروجی',flag:'--psiphon-region',ph:'مثلاً DE',help:'کد دو حرفی کشور. فهرست کشورهای موجود در AvailableEgressRegions خروجی Psiphon آمده است.'},
+    {t:'area',k:'psCdnIps',label:'آدرس‌های CDN',flag:'--psiphon-cdn-ips',ph:'با کاما یا فاصله جدا کنید',help:'اگر خالی باشد از فهرست داخلی Psiphon استفاده می‌شود.'},
+    {t:'text',k:'psCdnSni',label:'نام سرور (SNI) برای CDN',flag:'--psiphon-cdn-sni',ph:'example.com'},
+    {t:'text',k:'psBind',label:'آدرس پروکسی Psiphon',flag:'--psiphon-bind',ph:'127.0.0.1:1821',help:'با حالت «داخل WARP» و «WARP داخل Psiphon» استفاده می‌شود.',show:()=>cfg.psWay!=='only'},
+    {t:'text',k:'psHttp',label:'پروکسی HTTP برای Psiphon',flag:'--psiphon-http',ph:'خالی = خاموش'},
+    {t:'text',k:'psConfig',label:'فایل تنظیمات JSON دلخواه',flag:'--psiphon-config',ph:'/path/psiphon.json',help:'فقط برای استفاده از اعتبارنامه یا فهرست سرور متفاوت.'},
+    {t:'text',k:'psDir',label:'پوشه داده Psiphon',flag:'--psiphon-dir',ph:'پیش‌فرض کنار فایل هویت'},
+    {t:'text',k:'psBin',label:'مسیر psiphon-tunnel-core',flag:'--psiphon-bin',ph:'اگر کنار برنامه نیست'}
+  ]},
+  { id:'tor', title:'Tor (تور)', open:true, show:()=>cfg.engine==='tor',
+    note:'Tor فقط در نسخه‌ای کار می‌کند که با قابلیت tor ساخته شده باشد.', fields:[
+    {t:'seg',k:'torWay',label:'نحوه اتصال',flag:'--tor-only / --tor / --tor-reverse',cols:1,
+      opts:[['only','به‌تنهایی'],['chain','Tor داخل WARP'],['reverse','WARP داخل Tor']],help:()=>HELP.torWay[cfg.torWay]},
+    {t:'seg',k:'torBridges',label:'پل‌ها (Bridge)',flag:'--tor-bridges / --no-tor-bridges / --tor-bridge',cols:2,
+      opts:[['auto','خودکار'],['force','همیشه پل'],['never','بدون پل'],['custom','پل دلخواه']],help:()=>HELP.torBridges[cfg.torBridges]},
+    {t:'area',k:'torBridgeLines',label:'خط‌های پل',flag:'--tor-bridge',ph:'obfs4 1.2.3.4:443 FINGERPRINT cert=… iat-mode=0',help:'هر پل در یک خط.',show:()=>cfg.torBridges==='custom'},
+    {t:'text',k:'torBridgeFile',label:'فایل پل‌ها',flag:'--tor-bridge-file',ph:'/path/bridges.txt',show:()=>cfg.torBridges!=='never'},
+    {t:'text',k:'torPt',label:'ترنسپورت (Pluggable Transport)',flag:'--tor-pt',ph:'snowflake=/path/snowflake-client',help:'به‌طور پیش‌فرض obfs4 فرض می‌شود و باینری‌ها خودکار پیدا می‌شوند.',show:()=>cfg.torBridges!=='never'},
+    {t:'text',k:'torPtDir',label:'پوشه ترنسپورت‌ها',flag:'--tor-pt-dir',ph:'پیش‌فرض pt/ کنار برنامه',show:()=>cfg.torBridges!=='never'},
+    {t:'seg',k:'torRelays',label:'رله‌های Onionoo',flag:'--tor-relays',cols:3,
+      opts:[['auto','خودکار'],['only','فقط رله'],['off','خاموش']],help:()=>HELP.torRelays[cfg.torRelays],show:()=>cfg.torBridges!=='never'},
+    {t:'num',k:'torRelayCount',label:'تعداد رله (اختیاری)',flag:'--tor-relays <n>',ph:'مثلاً 80',show:()=>cfg.torBridges!=='never'&&cfg.torRelays!=='off'},
+    {t:'seg',k:'torRelayPorts',label:'پورت رله‌ها',flag:'--tor-relay-ports',cols:2,
+      opts:[['web','وب (۸۰ و ۴۴۳)'],['any','همه']],help:'«وب» پورت‌هایی است که فایروال‌های سخت‌گیر معمولاً باز می‌گذارند.',show:()=>cfg.torBridges!=='never'&&cfg.torRelays!=='off'},
+    {t:'text',k:'torBind',label:'آدرس پروکسی Tor',flag:'--tor-bind',ph:'127.0.0.1:1820',show:()=>cfg.torWay!=='only'},
+    {t:'text',k:'torHttp',label:'پروکسی HTTP برای Tor',flag:'--tor-http',ph:'خالی = خاموش'},
+    {t:'text',k:'torDir',label:'پوشه داده Tor',flag:'--tor-dir',ph:'پیش‌فرض کنار فایل هویت'}
+  ]},
+  { id:'warp', title:'تونل WARP', open:true, show:usesWarp, fields:[
+    {t:'note',show:reverse,text:'در این حالت فقط MASQUE روی HTTP/2 ممکن است؛ WireGuard و Gool و MASQUE-in-MASQUE غیرفعال شدند.'},
+    {t:'seg',k:'transport',label:'نوع تونل',flag:'--masque / --wg / --gool / --mim',cols:2,
+      opts:[['masque','MASQUE'],['wg','WireGuard'],['gool','WARP-in-WARP'],['mim','MASQUE-in-MASQUE']],
+      dis:v=>reverse()&&v!=='masque',help:()=>HELP.transport[cfg.transport]},
+    {t:'seg',k:'scan',label:'حالت جست‌وجوی آدرس',flag:'--scan',cols:3,opts:SCAN_OPTS,help:()=>HELP.scan[cfg.scan]},
+    {t:'seg',k:'noize',label:'پروفایل استتار (Noize)',flag:'--noize',cols:3,opts:NOIZE_OPTS,help:()=>HELP.noize[cfg.noize]},
+    {t:'seg',k:'ip',label:'نسخه IP',flag:'-4 / -6 / --dual',cols:3,opts:[['4','IPv4'],['6','IPv6'],['both','هر دو']],help:'اگر شبکه شما IPv6 ندارد روی IPv4 بمانید.'},
+    {t:'text',k:'peer',label:'آدرس سرور مشخص',flag:'--peer',ph:'162.159.196.1:443',help:'اسکن رد می‌شود.',show:()=>isT('masque','wg')},
+    {t:'text',k:'wiwOuter',label:'هاپ بیرونی',flag:'--wiw-outer',ph:'162.159.192.1:2408',help:'همان که شبکه شما می‌بیند. پورت الزامی است.',show:()=>isT('gool')},
+    {t:'text',k:'wiwInner',label:'هاپ داخلی',flag:'--wiw-inner',ph:'188.114.96.1:2408',help:'از داخل هاپ بیرونی رسیده می‌شود و باید آدرسش فرق کند.',show:()=>isT('gool')},
+    {t:'text',k:'mimOuter',label:'هاپ بیرونی',flag:'--mim-outer',ph:'162.159.192.1:443',show:()=>isT('mim')},
+    {t:'text',k:'mimInner',label:'هاپ داخلی',flag:'--mim-inner',ph:'162.159.204.1:443',help:'دو هاپ باید آدرس متفاوت داشته باشند.',show:()=>isT('mim')},
+    {t:'sw',k:'quick',label:'اتصال مجدد سریع',flag:'--quick-reconnect',help:'از آخرین آدرس سالم استفاده کن و اسکن نکن.'}
+  ]},
+  { id:'masque', title:'MASQUE', show:()=>usesWarp()&&isT('masque','mim'), fields:[
+    {t:'seg',k:'carrier',label:'نسخه پروتکل',flag:'--h3 / --h2',cols:2,opts:[['h3','HTTP/3 (QUIC)'],['h2','HTTP/2 (TCP)']],
+      dis:v=>reverse()&&v==='h3',help:'اگر UDP پورت ۴۴۳ مسدود است HTTP/2 را انتخاب کنید.'},
+    {t:'sw',k:'quicV2',label:'شروع‌کننده QUIC v2',flag:'--no-quic-v2',help:'مسیر HTTP/3 را روی شبکه‌هایی که QUIC v1 را می‌بندند باز می‌کند.',show:()=>!isH2()},
+    {t:'text',k:'h2Peer',label:'آدرس سرور برای HTTP/2',flag:'--h2-peer',ph:'162.159.196.1:443',show:isH2},
+    {t:'sw',k:'fragment',label:'تکه‌تکه کردن ClientHello',flag:'--fragment',help:'SNI را از بازرسی‌هایی که یک بسته را می‌خوانند پنهان می‌کند.',show:isH2},
+    {t:'text',k:'fragSize',label:'اندازه تکه‌ها (بایت)',flag:'--fragment-size',ph:'16-32',show:()=>isH2()&&cfg.fragment},
+    {t:'text',k:'fragDelay',label:'فاصله بین تکه‌ها (میلی‌ثانیه)',flag:'--fragment-delay',ph:'2-10',show:()=>isH2()&&cfg.fragment},
+    {t:'sw',k:'ech',label:'Encrypted Client Hello',flag:'--ech auto',help:'SNI را کاملاً پنهان می‌کند، اگر شبکه اجازه بدهد.'}
+  ]},
+  { id:'wg', title:'WireGuard', show:()=>usesWarp()&&isT('wg','gool'), fields:[
+    {t:'num',k:'keepalive',label:'فاصله Keepalive (ثانیه)',flag:'--keepalive',ph:'5'},
+    {t:'sw',k:'noRetry',label:'امتحان نکردن پروفایل‌های دیگر',flag:'--no-profile-retry',help:'در اسکن، پروفایل‌های استتار دیگر را دوباره امتحان نکن.'}
+  ]},
+  { id:'health', title:'پایداری و بررسی داده', show:usesWarp, fields:[
+    {t:'sw',k:'dataCheck',label:'بررسی سرتاسری مسیر داده',flag:'--no-data-check',help:'قبل از باز شدن پروکسی، یک آدرس باید ترافیک واقعی رد کند.'},
+    {t:'num',k:'validateSecs',label:'مهلت بررسی (ثانیه)',flag:'--validate-secs',ph:'10',show:()=>cfg.dataCheck},
+    {t:'num',k:'startupSecs',label:'مهلت راه‌اندازی (ثانیه)',flag:'--startup-secs',ph:'30',show:()=>isT('masque','mim')},
+    {t:'num',k:'reconnectSecs',label:'تأخیر اتصال دوباره (ثانیه)',flag:'--reconnect-secs',ph:'2'},
+    {t:'text',k:'dns',label:'DNS داخل تونل',flag:'--dns',ph:'1.1.1.1,1.0.0.1'}
+  ]},
+  { id:'white', title:'White (وایت)', open:true, show:isWhite, fields:[
+    {t:'note',text:'وایت با هسته Mihomo کار می‌کند و از سابسکریپشن داخلی یا لینک خودتان سرور انتخاب می‌کند.'},
+    {t:'seg',k:'whSub',label:'منبع اتصال',flag:'--subscription',cols:2,
+      opts:[['builtin','داخلی وایت'],['personal','شخصی']],help:()=>HELP.whSub[cfg.whSub]},
+    {t:'text',k:'whSubUrl',label:'لینک سابسکریپشن',flag:'--sub-url',ph:'https://…',help:'URL، YAML، JSON یا فهرست لینک‌های VLESS، VMess، Trojan، Hysteria2، Shadowsocks، WireGuard یا SOCKS5.',show:()=>cfg.whSub==='personal'},
+    {t:'servers',k:'whServer',label:'انتخاب سرور',flag:'--proxy',help:()=>HELP.whServer[cfg.whServerPick]},
+    {t:'seg',k:'whSort',label:'ترتیب فهرست',flag:'--sort',cols:3,
+      opts:[['low','کمترین تأخیر'],['fast','سریع‌ترین'],['sub','ترتیب سابسکریپشن']]},
+    {t:'seg',k:'whChain',label:'زنجیره اتصال',flag:'--chain',cols:2,
+      opts:[['direct','مستقیم'],['warp','WARP → سرور']],help:()=>HELP.whChain[cfg.whChain]},
+    {t:'seg',k:'whRoute',label:'حالت مسیریابی',flag:'--routing',cols:3,
+      opts:[['sub','قوانین اشتراک'],['iran','عبور مستقیم ایران'],['global','پروکسی سراسری']],help:()=>HELP.whRoute[cfg.whRoute]},
+    {t:'seg',k:'whDns',label:'حالت DNS',flag:'--dns-mode',cols:3,
+      opts:[['auto','خودکار'],['doh','DoH'],['dot','DoT']],help:()=>HELP.whDns[cfg.whDns]},
+    {t:'text',k:'whDnsAddr',label:'آدرس سرور DNS',flag:'--dns-server',ph:'1.1.1.1',show:()=>cfg.whDns!=='auto'},
+    {t:'seg',k:'whNoise',label:'نویز و بسته‌های DPI',flag:'--amnezia-noise',cols:3,
+      opts:[['off','خاموش'],['light','سبک'],['full','کامل']],help:()=>HELP.whNoise[cfg.whNoise]},
+    {t:'text',k:'whFronting',label:'جایگذاری IP (IP Fronting)',flag:'--fronting',ph:'198.51.100.10:443',help:'ترافیک روی یک IP معتبر دیگر پنهان می‌شود تا بازرسی آن را نبیند.'}
+  ]}
+];
+
+const ADV = [
+  { id:'local', title:'پروکسی محلی', open:true, fields:[
+    {t:'text',k:'bind',label:'آدرس SOCKS5',flag:'--bind',ph:'127.0.0.1:1819',help:'روی 0.0.0.0 فقط وقتی بگذارید که بخواهید تونل را با شبکه به اشتراک بگذارید؛ چیزی کاربران را احراز هویت نمی‌کند.'},
+    {t:'sw',k:'httpOn',label:'پروکسی HTTP CONNECT',flag:'--http-proxy',help:'برای برنامه‌هایی که SOCKS ندارند.'},
+    {t:'text',k:'httpAddr',label:'آدرس پروکسی HTTP',flag:'--http-proxy',ph:'127.0.0.1:1822',show:()=>cfg.httpOn}
+  ]},
+  { id:'exit', title:'کشور خروجی و پروکسی بالادست', fields:[
+    {t:'text',k:'exitLoc',label:'فیلتر کشور خروجی',flag:'--exit-loc',ph:'!IR,RU یا DE,SE',help:'با ! کشورها را ممنوع کنید، بدون ! فقط همان‌ها مجازند. تا وقتی پر نکنید هیچ بررسی‌ای انجام نمی‌شود.'},
+    {t:'num',k:'exitLocSecs',label:'فاصله بررسی مجدد (ثانیه)',flag:'--exit-loc-secs',ph:'60',show:()=>cfg.exitLoc.trim()!==''},
+    {t:'text',k:'upstream',label:'پروکسی بالادست',flag:'--upstream',ph:'socks5://127.0.0.1:1080',help:'همه اتصال‌ها از پشت پروکسی‌ای که از قبل اجرا است می‌روند. HTTP فقط با HTTP/2 کار می‌کند.'},
+    {t:'text',k:'mark',label:'Firewall mark',flag:'--mark',ph:'0xff',help:'فقط لینوکس و اندروید و نیازمند دسترسی root.'}
+  ]},
+  { id:'routing', title:'قوانین مسیریابی', fields:[
+    {t:'area',k:'routeBlock',label:'مسدود شود',flag:'--route-block',ph:'ads.example.com, port:25, keyword:doubleclick',help:'اتصال به این مقصدها کاملاً رد می‌شود. هر مورد در یک خط یا با کاما.'},
+    {t:'area',k:'routeDirect',label:'مستقیم (بدون تونل)',flag:'--route-direct',ph:'private, bank.ir',help:'برای بانک‌ها، شبکه محلی و سایت‌های داخلی که آدرس خارجی را نمی‌پذیرند. «private» یعنی شبکه محلی.'},
+    {t:'sw',k:'routeSniff',label:'خواندن نام از اولین بایت‌ها',flag:'AETHER_ROUTE_SNIFF',help:'وقتی برنامه فقط آدرس IP می‌دهد، نام را از TLS یا Host می‌خواند تا قوانین نام کار کنند.'},
+    {t:'num',k:'routeSniffMs',label:'مهلت خواندن (میلی‌ثانیه)',flag:'AETHER_ROUTE_SNIFF_MS',ph:'400',show:()=>cfg.routeSniff}
+  ]},
+  { id:'whSplit', title:'تقسیم تونل', show:isWhite, fields:[
+    {t:'seg',k:'whSplit',label:'حالت تقسیم تونل',flag:'--split-tunnel',cols:1,
+      opts:[['off','خاموش'],['bypass','برنامه‌های انتخاب‌شده خارج از VPN'],['vpnonly','فقط برنامه‌های انتخاب‌شده داخل VPN']],help:()=>HELP.whSplit[cfg.whSplit]},
+    {t:'num',k:'whSplitCount',label:'تعداد برنامه‌های انتخاب‌شده',flag:'--split-count',ph:'۰',show:()=>cfg.whSplit!=='off'}
+  ]},
+  { id:'whLan', title:'اشتراک‌گذاری در شبکه', show:isWhite, fields:[
+    {t:'sw',k:'whShare',label:'اشتراک وی‌پی‌ان در شبکه',flag:'--lan-sharing',help:'دستگاه‌های دیگر با پروکسی HTTP یا SOCKS5 از وایت استفاده کنند.'},
+    {t:'sw',k:'whPass',label:'نیاز به رمز عبور',flag:'--lan-password',help:'دسترسی را با نام کاربری و رمز ساخته‌شده محافظت کنید.',show:()=>cfg.whShare},
+    {t:'sw',k:'whClean',label:'پاک‌سازی آدرس‌های آلوده',flag:'--clean-ip',help:'آدرس‌های مشکوک در فهرست سرورها کنار گذاشته می‌شوند.'}
+  ]},
+  { id:'zt', title:'Zero Trust (WARP برای سازمان‌ها)', show:usesWarp, fields:[
+    {t:'text',k:'team',label:'نام تیم',flag:'--team',ph:'acme',help:'به‌جای دستگاه ناشناس، دستگاه مدیریت‌شده سازمان می‌شوید.'},
+    {t:'seg',k:'ztMethod',label:'روش ورود',flag:'',cols:3,opts:[['email','کد ایمیل'],['token','توکن سرویس'],['jwt','توکن موجود']],show:()=>cfg.team.trim()!==''},
+    {t:'text',k:'ztEmail',label:'ایمیل',flag:'--access-email',ph:'me@example.com',help:'کلادفلر یک کد یک‌بارمصرف می‌فرستد؛ سه بار فرصت دارید.',show:()=>cfg.team.trim()!==''&&cfg.ztMethod==='email'},
+    {t:'text',k:'ztId',label:'شناسه سرویس',flag:'--access-id',show:()=>cfg.team.trim()!==''&&cfg.ztMethod==='token'},
+    {t:'text',k:'ztSecret',label:'رمز سرویس',flag:'--access-secret',show:()=>cfg.team.trim()!==''&&cfg.ztMethod==='token'},
+    {t:'area',k:'ztJwt',label:'توکن',flag:'--access-token',ph:'eyJ…',show:()=>cfg.team.trim()!==''&&cfg.ztMethod==='jwt'},
+    {t:'sw',k:'gateway',label:'عبور HTTP از Gateway سازمان',flag:'--gateway',help:'فیلتر و ثبت سازمان اعمال می‌شود و مرورتان ثبت می‌شود. پیش‌فرض خاموش است.',show:()=>cfg.team.trim()!==''}
+  ]},
+  { id:'limits', title:'محدودیت‌ها و عملکرد', fields:[
+    {t:'seg',k:'perf',label:'پروفایل عملکرد',flag:'AETHER_PERF_PROFILE',cols:3,opts:[['low','کم'],['medium','متوسط'],['high','زیاد']]},
+    {t:'num',k:'maxClients',label:'حداکثر کلاینت همزمان',flag:'AETHER_MAX_CLIENTS',ph:'خودکار (۵۱۲ تا ۸۱۹۲)'},
+    {t:'num',k:'halfClose',label:'مهلت اتصال نیمه‌بسته (ثانیه)',flag:'AETHER_HALF_CLOSE_SECS',ph:'30'},
+    {t:'num',k:'tcpKeepalive',label:'Keepalive شبکه (ثانیه)',flag:'AETHER_TCP_KEEPALIVE_SECS',ph:'60'},
+    {t:'num',k:'tcpConnect',label:'مهلت باز شدن اتصال (ثانیه)',flag:'AETHER_TCP_CONNECT_SECS',ph:'30'}
+  ]},
+  { id:'misc', title:'آمار و هویت دستگاه', fields:[
+    {t:'sw',k:'stats',label:'نمایش آمار مصرف',flag:'--stats',help:'تأخیر و حجم دریافت و ارسال روی صفحه خانه.'},
+    {t:'num',k:'statsSecs',label:'فاصله به‌روزرسانی آمار (ثانیه)',flag:'--stats-secs',ph:'60',show:()=>cfg.stats},
+    {t:'sw',k:'reprovision',label:'جایگزینی خودکار هویت رد‌شده',flag:'AETHER_REPROVISION',help:'اگر کلادفلر دستگاه ذخیره‌شده را نپذیرد، دستگاه تازه ثبت می‌شود.'}
+  ]}
+];
+
+/* ================= render ================= */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const flagEl = f => f ? `<span class="flag">${esc(f)}</span>` : '';
+
+function fieldHTML(f){
+  if(f.t==='note') return `<div class="warn-note" data-note>${esc(f.text)}</div>`;
+  if(f.t==='servers') return `<label>${esc(f.label)}${flagEl(f.flag)}</label><small data-help></small>
+      <div class="seg" data-key="whServerPick" style="margin-bottom:8px">
+      ${[['auto','خودکار (سریع‌ترین)'],['manual','انتخاب دستی']].map(([v,l])=>`<button aria-pressed="false" data-v="${v}">${esc(l)}</button>`).join('')}</div>
+      <div class="shead"><b id="whServerName">—</b><button type="button" data-sertest="1">تست دوباره</button></div>
+      <div class="slist" id="whServerList" role="group" aria-label="فهرست سرورها"></div>
+      <div class="sbar"><i id="whTestBar"></i></div>`;
+  if(f.t==='sw') return `<div class="row"><div>${esc(f.label)}${flagEl(f.flag)}${f.help?`<small>${esc(f.help)}</small>`:''}</div>
+      <button class="switch" role="switch" aria-checked="false" data-key="${f.k}" aria-label="${esc(f.label)}"></button></div>`;
+  if(f.t==='seg'){
+    const cols = f.cols||3;
+    return `<label>${esc(f.label)}${flagEl(f.flag)}</label><small data-help></small>
+      <div class="seg" style="grid-template-columns:repeat(${cols},1fr)" data-key="${f.k}">
+      ${f.opts.map(([v,l])=>`<button aria-pressed="false" data-v="${v}">${esc(l)}</button>`).join('')}</div>`;
+  }
+  const ctl = f.t==='area'
+    ? `<textarea class="field" data-key="${f.k}" placeholder="${esc(f.ph||'')}" spellcheck="false"></textarea>`
+    : `<input class="field" data-key="${f.k}" placeholder="${esc(f.ph||'')}" spellcheck="false" ${f.t==='num'?'inputmode="numeric"':''}>`;
+  return `<label>${esc(f.label)}${flagEl(f.flag)}</label>${typeof f.help==='string'?`<small>${esc(f.help)}</small>`:'<small data-help></small>'}${ctl}`;
+}
+
+function build(list, host){
+  host.innerHTML = list.map((s,i)=>`
+    <details class="sec" data-sec="${s.id}" ${s.open?'open':''}>
+      <summary>${esc(s.title)}</summary>
+      ${s.note?`<div class="sec-note">${esc(s.note)}</div>`:''}
+      <div class="sec-body">${s.fields.map((f,j)=>`<div class="${f.t==='sw'||f.t==='note'?'':'group'}" data-fid="${s.id}.${j}">${fieldHTML(f)}</div>`).join('')}</div>
+    </details>`).join('');
+}
+build(METHOD, $('#method-secs'));
+build(ADV, $('#adv-secs'));
+
+/* ================= reset to defaults ================= */
+// Pristine snapshot of the shipped defaults, taken before any user edit.
+const DEFAULTS = JSON.parse(JSON.stringify(cfg));
+let resetNoteTimer = null;
+
+function resetToDefaults(){
+  // A reset while connected would leave the drawn tunnel and the proxy rows
+  // describing a configuration that no longer exists, so require idle first.
+  if(phone.dataset.state!=='idle'){ toast('ابتدا اتصال را قطع کنید'); return; }
+
+  Object.keys(DEFAULTS).forEach(k=>{ cfg[k] = DEFAULTS[k]; });
+  Object.keys(touched).forEach(k=>{ delete touched[k]; });
+  savedBeforeReverse = null;
+  normalize();
+  refresh();
+
+  const note = $('#resetNote');
+  if(note){
+    note.hidden = false;
+    clearTimeout(resetNoteTimer);
+    resetNoteTimer = setTimeout(()=>{ note.hidden = true; }, 2600);
+  }
+  toast('همه تنظیمات به حالت اولیه برگشت');
+}
+
+$('#resetSettings').addEventListener('click', resetToDefaults);
+
+/* ================= state changes ================= */
+function noizeDefault(){ return isT('masque','mim') ? 'firewall' : 'balanced'; }
+
+let savedBeforeReverse = null;
+function normalize(){
+  if(reverse()){
+    if(!savedBeforeReverse) savedBeforeReverse = {transport:cfg.transport, carrier:cfg.carrier};
+    cfg.transport='masque'; cfg.carrier='h2';
+  } else if(savedBeforeReverse){
+    cfg.transport = savedBeforeReverse.transport; cfg.carrier = savedBeforeReverse.carrier;
+    savedBeforeReverse = null;
+  }
+  if(!touched.noize) cfg.noize = noizeDefault();
+}
+
+function setKey(k, v){
+  if(k==='engine' && phone.dataset.state!=='idle'){ toast('ابتدا اتصال را قطع کنید'); return; }
+  cfg[k] = v;
+  if(k==='whServerPick'){ if(v==='auto') cfg.whServer='auto'; else if(cfg.whServer==='auto') cfg.whServer=fastestWhite().n; }
+  if(k==='noize') touched.noize = true;
+  normalize();
+  refresh();
+  if(k!=='engine' && phone.dataset.state!=='idle') toast('تغییر با اتصال بعدی اعمال می‌شود');
+}
+
+document.addEventListener('click', e => {
+  const eng = e.target.closest('[data-set="engine"]');
+  if(eng){ setKey('engine', eng.dataset.v); return; }
+  const pick = e.target.closest('[data-pick]');
+  if(pick){ cfg.whServerPick='manual'; cfg.whServer=pick.dataset.pick; refresh();
+           if(phone.dataset.state!=='idle') toast('تغییر با اتصال بعدی اعمال می‌شود'); return; }
+  const st = e.target.closest('[data-sertest]');
+  if(st){ testServers(); return; }
+  const b = e.target.closest('.seg button');
+  if(b){
+    if(b.classList.contains('dis')) return;
+    let v = b.dataset.v;
+    const key = b.parentElement.dataset.key;
+    if(v==='true') v = true; else if(v==='false') v = false;
+    setKey(key, v); return;
+  }
+  const s = e.target.closest('.switch');
+  if(s){ setKey(s.dataset.key, s.getAttribute('aria-checked')!=='true'); }
+});
+document.addEventListener('input', e => {
+  const el = e.target.closest('.field'); if(!el) return;
+  cfg[el.dataset.key] = el.value;
+  refresh(el);
+  if(phone.dataset.state!=='idle') { /* applies next connection */ }
+});
+
+function refresh(activeEl){
+  // segs
+  $$('.seg[data-key]').forEach(seg=>{
+    const key = seg.dataset.key;
+    const def = findField(key);
+    seg.querySelectorAll('button').forEach(b=>{
+      const v = b.dataset.v==='true'?true:b.dataset.v==='false'?false:b.dataset.v;
+      b.setAttribute('aria-pressed', cfg[key]===v);
+      b.classList.toggle('dis', !!(def && def.dis && def.dis(v)));
+    });
+  });
+  $$('.switch[data-key]').forEach(s=>s.setAttribute('aria-checked', !!cfg[s.dataset.key]));
+  $$('.field[data-key]').forEach(el=>{ if(el!==activeEl && el.value!==cfg[el.dataset.key]) el.value = cfg[el.dataset.key]; });
+  // dynamic help + visibility
+  [[METHOD],[ADV]].forEach(([list])=>{
+    list.forEach(s=>{
+      const sec = document.querySelector(`[data-sec="${s.id}"]`);
+      const secVisible = s.show ? !!s.show() : true;
+      sec.hidden = !secVisible;
+      s.fields.forEach((f,j)=>{
+        const w = sec.querySelector(`[data-fid="${s.id}.${j}"]`);
+        w.hidden = f.show ? !f.show() : false;
+        const h = w.querySelector('[data-help]');
+        if(h){ const t = typeof f.help==='function' ? f.help() : (f.help||''); h.textContent = t; h.hidden = !t; }
+      });
+    });
+  });
+  // engine buttons
+  $$('[data-set="engine"]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===cfg.engine));
+  renderServerList();
+  renderRoute(); renderProxies();
+  $('#readout').hidden = !cfg.stats;
+  if(phone.dataset.state==='idle') $('#sub').textContent = idleSub();
+}
+function findField(k){
+  for(const s of [...METHOD,...ADV]) for(const f of s.fields) if(f.k===k) return f;
+  return null;
+}
+
+/* ================= White: server list ================= */
+const fastestWhite = () => WH_SERVERS.reduce((a,b)=>a.lat<=b.lat?a:b);
+function whiteServers(){
+  const s = [...WH_SERVERS];
+  if(cfg.whSort==='low')   s.sort((a,b)=>a.lat-b.lat);
+  if(cfg.whSort==='fast')  s.sort((a,b)=>a.lat*Math.random()<b.lat*Math.random()?-1:1);
+  return s;
+}
+function activeWhite(){
+  if(cfg.whServerPick==='auto') return fastestWhite();
+  return WH_SERVERS.find(s=>s.n===cfg.whServer) || fastestWhite();
+}
+function latClass(l){ return l<90?'ok':l<160?'mid':'bad'; }
+function renderServerList(){
+  const host = $('#whServerList');
+  if(!host) return;
+  const act = activeWhite();
+  host.innerHTML = whiteServers().map(s=>
+    `<button class="srow" data-pick="${esc(s.n)}" aria-pressed="${s.n===act.n}">
+      <span class="flagc">${s.f}</span><span class="nm">${esc(s.n)}</span>
+      <span class="tag">${esc(s.t)}</span><span class="lat ${latClass(s.lat)}">${fa(s.lat)} ms</span>
+    </button>`).join('');
+  const nm = $('#whServerName');
+  if(nm) nm.textContent = cfg.whServerPick==='auto' ? `${act.n} · خودکار` : act.n;
+}
+let serTestTimer;
+function testServers(){
+  const bar = $('#whTestBar');
+  const host = $('#whServerList');
+  if(!bar || !host) return;
+  clearTimeout(serTestTimer);
+  let p = 0;
+  bar.style.width = '0%';
+  const step = () => {
+    p += 12 + Math.random()*16;
+    bar.style.width = Math.min(100, p) + '%';
+    if(p < 100) serTestTimer = setTimeout(step, 90 + Math.random()*110);
+    else { WH_SERVERS.forEach(s=>{ s.lat = Math.max(38, Math.round(s.lat + (Math.random()*30-14))); }); refresh(); }
+  };
+  step();
+}
+
+/* ================= home: route + proxies ================= */
+function routeNodes(){
+  if(isWhite()){
+    const srv = activeWhite();
+    if(cfg.whChain==='warp') return ['شما','WARP', srv.n, 'اینترنت'];
+    return ['شما', srv.n, 'اینترنت'];
+  }
+  const w = T_NAMES[cfg.transport];
+  const warp = `WARP (${w})`;
+  if(cfg.engine==='aether') return ['شما', warp, 'اینترنت'];
+  const name = cfg.engine==='psiphon' ? 'Psiphon' : cfg.engine==='s4' ? 'S4VPN' : 'Tor';
+  const way = wayOf();
+  if(way==='only')    return ['شما', name, 'اینترنت'];
+  if(way==='chain')   return ['شما', warp, name, 'اینترنت'];
+  return ['شما', name, warp, 'اینترنت'];
+}
+function renderRoute(){
+  $('#route').innerHTML = routeNodes().map((n,i)=>(i?'<i>←</i>':'')+`<span class="node">${esc(n)}</span>`).join('');
+}
+function idleSub(){
+  if(isWhite()) return cfg.whServerPick==='auto' ? 'وایت، خودکار سریع‌ترین سرور را می‌گیرد' : `وایت روی ${activeWhite().n}`;
+  return cfg.engine==='aether' ? 'با یک لمس، تونل امن باز می‌شود'
+       : cfg.engine==='psiphon' ? 'با Psiphon متصل می‌شوید'
+       : cfg.engine==='s4' ? 'با S4VPN متصل می‌شوید'
+       : 'با Tor متصل می‌شوید';
+}
+function proxyRows(){
+  const rows = [];
+  if(isWhite()){
+    rows.push(['SOCKS5 · وایت', cfg.bind]);
+    if(cfg.httpOn) rows.push(['HTTP · وایت', cfg.httpAddr]);
+    if(cfg.whShare) rows.push(['شبکه محلی', `192.168.1.10:1822`]);
+    return rows;
+  }
+  const way = wayOf();
+  const nm = cfg.engine==='psiphon' ? 'Psiphon' : cfg.engine==='s4' ? 'S4VPN' : 'Tor';
+  if(cfg.engine==='aether') rows.push(['SOCKS5', cfg.bind]);
+  else if(way==='only') rows.push([`SOCKS5 · ${nm}`, cfg.bind]);
+  else {
+    rows.push(['SOCKS5 · خروجی WARP', cfg.bind]);
+    rows.push([`SOCKS5 · خروجی ${nm}`, cfg.engine==='psiphon' ? cfg.psBind : cfg.torBind]);
+  }
+  if(cfg.httpOn) rows.push(['HTTP · WARP', cfg.httpAddr]);
+  if(cfg.engine==='psiphon' && cfg.psHttp.trim()) rows.push(['HTTP · Psiphon', cfg.psHttp]);
+  if(cfg.engine==='tor' && cfg.torHttp.trim()) rows.push(['HTTP · Tor', cfg.torHttp]);
+  return rows;
+}
+function renderProxies(){
+  $('#proxies').innerHTML = proxyRows().map(([l,a],i)=>
+    `<div class="proxy"><span>${esc(l)}</span><code>${esc(a||'—')}</code><button data-copy="${esc(a||'')}">کپی</button></div>`).join('');
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-copy]'); if(!c) return;
+  navigator.clipboard?.writeText(c.dataset.copy).then(()=>toast('آدرس کپی شد'),()=>toast('کپی ممکن نشد'));
+});
+
+/* ================= tabs + toast ================= */
+$$('nav button').forEach(b => b.addEventListener('click', () => {
+  $$('nav button').forEach(x => x.setAttribute('aria-selected', x===b));
+  $$('.screen').forEach(s => s.classList.remove('on'));
+  $('#s-'+b.dataset.go).classList.add('on');
+  $('main').scrollTop = 0;
+}));
+let tt;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(()=>t.classList.remove('show'), 1900);
+}
+
+/* ================= simulated connection ================= */
+let timers = [], tick, secs = 0, meter;
+const clear = () => { timers.forEach(clearTimeout); timers = []; clearInterval(tick); clearInterval(meter); };
+const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+
+function setState(s){
+  phone.dataset.state = s;
+  const map = { idle:['قطع','اتصال'], connecting:['در حال اتصال','لغو'], connected:['متصل','قطع'] };
+  $('#pillText').textContent = map[s][0];
+  $('#powerLabel').textContent = map[s][1];
+  $('#ringDots').classList.toggle('fast', s === 'connecting');
+}
+
+const SCAN_MS = {turbo:900, balanced:1600, thorough:2600, stealth:3400, verified:2000, ironclad:4200};
+
+function stepPlan(){
+  const way = wayOf();
+  if(isWhite()){
+    const srv = activeWhite();
+    const l = cfg.whServerPick==='auto'
+      ? ['دریافت سابسکریپشن','تست سرورها و انتخاب خودکار',`اتصال به ${srv.n}`,'راه‌اندازی پروکسی']
+      : ['دریافت سابسکریپشن',`اتصال به ${srv.n}`,'بررسی دسترسی سرور','راه‌اندازی پروکسی'];
+    return { labels:l, first:1400 };
+  }
+  if(cfg.engine==='aether'){
+    const forced = (isT('masque','wg') && cfg.peer.trim()) || (isT('gool') && cfg.wiwOuter.trim() && cfg.wiwInner.trim()) || (isT('mim') && cfg.mimOuter.trim() && cfg.mimInner.trim());
+    const fast = forced || (cfg.quick);
+    return { labels:[ forced?'استفاده از آدرس تعیین‌شده':'جست‌وجوی آدرس‌های در دسترس','دست‌دهی امن با سرور', cfg.dataCheck?'آزمایش مسیر داده':'راه‌اندازی تونل','راه‌اندازی پروکسی محلی'],
+             first: forced?300:(cfg.quick?700:SCAN_MS[cfg.scan]) };
+  }
+  if(cfg.engine==='psiphon'){
+    const l = way==='only' ? ['راه‌اندازی Psiphon', cfg.psShape==='cdn'?'اتصال از پشت CDN':'یافتن سرور در دسترس','ساخت تونل','راه‌اندازی پروکسی']
+            : way==='chain' ? ['ساخت تونل WARP','راه‌اندازی Psiphon داخل تونل','آزمایش مسیر','راه‌اندازی پروکسی‌ها']
+            : ['راه‌اندازی Psiphon','ساخت تونل WARP از داخل Psiphon','آزمایش مسیر','راه‌اندازی پروکسی‌ها'];
+    return { labels:l, first:1500 };
+  }
+  if(cfg.engine==='s4'){
+    return { labels:['دریافت پیکربندی S4VPN','ساخت تونل','آزمایش مسیر','راه‌اندازی پروکسی'], first:1600 };
+  }
+  const bridged = cfg.torBridges==='force'||cfg.torBridges==='custom';
+  const l = way==='only' ? ['دریافت دایرکتوری Tor', bridged?'یافتن پل مناسب':'ساخت مدار Tor','بررسی دسترسی Tor','راه‌اندازی پروکسی']
+          : way==='chain' ? ['ساخت تونل WARP','بارگذاری Tor داخل تونل','بررسی دسترسی Tor','راه‌اندازی پروکسی‌ها']
+          : ['دریافت دایرکتوری Tor', bridged?'یافتن پل مناسب':'ساخت مدار Tor','ساخت تونل WARP از داخل Tor','راه‌اندازی پروکسی‌ها'];
+  return { labels:l, first:2200 };
+}
+
+function connect(){
+  setState('connecting');
+  $('#title').textContent = 'در حال ساخت تونل…';
+  const steps = $$('#steps i'); steps.forEach(i => i.classList.remove('done'));
+  const plan = stepPlan();
+  const gap = cfg.engine==='tor' ? 1300 : 700;
+  const at = [0, plan.first, plan.first+gap, plan.first+gap*2];
+  plan.labels.forEach((l,i) => later(() => {
+    $('#sub').textContent = l + '…';
+    if(i) steps[i-1].classList.add('done');
+  }, at[i]));
+  later(() => {
+    steps[3].classList.add('done');
+    setState('connected');
+    $('#title').textContent = 'متصل شدید';
+    startSession();
+  }, at[3] + 700);
+}
+
+function baseLatency(){
+  const way = wayOf();
+  if(cfg.engine==='tor') return way==='only' ? 320 : 380;
+  if(cfg.engine==='psiphon') return way==='only' ? 130 : 170;
+  if(cfg.engine==='s4') return 56;
+  return {masque:48, wg:36, gool:92, mim:88}[cfg.transport];
+}
+function startSession(){
+  secs = 0;
+  const label = routeNodes().slice(1,-1).join(' ← ');
+  const paint = () => {
+    const m = String(Math.floor(secs/60)).padStart(2,'0'), s = String(secs%60).padStart(2,'0');
+    $('#sub').innerHTML = `<span class="timer">${fa(m+':'+s)}</span> · ${esc(cfg.engine==='aether'?T_NAMES[cfg.transport]:label)}`;
+  };
+  paint();
+  tick = setInterval(()=>{ secs++; paint(); }, 1000);
+  const base = baseLatency(), slow = cfg.engine==='tor' ? .35 : 1;
+  const upd = () => {
+    $('#ping').textContent = fa(base + Math.round(Math.random()*base*.25));
+    $('#down').textContent = fa(((Math.random()*3.4+0.4)*slow).toFixed(1)) + 'M';
+    $('#up').textContent   = fa(((Math.random()*0.9+0.1)*slow).toFixed(1)) + 'M';
+  };
+  upd(); meter = setInterval(upd, Math.max(1000, (+cfg.statsSecs||1)*1000 > 4000 ? 1400 : 1400));
+}
+function disconnect(msg){
+  clear(); setState('idle');
+  $('#title').textContent = 'آماده اتصال';
+  $('#sub').textContent = msg || idleSub();
+  ['#ping','#down','#up'].forEach(s => $(s).textContent = '—');
+  $$('#steps i').forEach(i => i.classList.remove('done'));
+}
+$('#power').addEventListener('click', () => {
+  const s = phone.dataset.state;
+  if(s === 'idle') connect();
+  else if(s === 'connecting') disconnect('لغو شد');
+  else disconnect();
+});
+
+normalize(); refresh();
+
+/* ---------- neon blue snow (all states) ---------- */
+(function(){
+  const cv = document.getElementById('snow'), ctx = cv.getContext('2d');
+  const host = cv.parentElement;
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // pre-render one glowing flake sprite (cheap to stamp thousands of times)
+  function buildSprite(){
+    const sp = document.createElement('canvas'); sp.width = sp.height = 64;
+    const sc = sp.getContext('2d');
+    const white = document.documentElement.dataset.theme === 'white';
+    const g = sc.createRadialGradient(32,32,0,32,32,32);
+    if(white){
+      g.addColorStop(0,'rgba(255,255,255,1)');
+      g.addColorStop(.18,'rgba(160,235,205,.95)');
+      g.addColorStop(.45,'rgba(0,163,107,.35)');
+      g.addColorStop(1,'rgba(0,163,107,0)');
+    } else {
+      g.addColorStop(0,'rgba(210,244,255,1)');
+      g.addColorStop(.18,'rgba(90,205,255,.95)');
+      g.addColorStop(.45,'rgba(24,180,255,.35)');
+      g.addColorStop(1,'rgba(24,180,255,0)');
+    }
+    sc.fillStyle = g; sc.fillRect(0,0,64,64);
+    return sp;
+  }
+  let sp = buildSprite();
+  document.addEventListener('themechange', () => {
+    sp = buildSprite();
+    if(reduce) draw(0);
+  });
+
+  let flakes = [];
+  const rnd = (a,b) => a + Math.random()*(b-a);
+  function make(initial){
+    const z = Math.random();                       // depth: small+slow ... big+fast
+    return {
+      x: rnd(0,W), y: initial ? rnd(0,H) : rnd(-30,-4),
+      r: 2.5 + z*7,                                // sprite radius (glow included)
+      vy: 14 + z*46,                               // px/s
+      sw: rnd(6,26), ph: rnd(0,6.28), fq: rnd(.4,1.1),
+      a: .35 + z*.6
+    };
+  }
+  function resize(){
+    W = host.clientWidth; H = host.clientHeight;
+    cv.width = W*dpr; cv.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const n = Math.round(Math.min(90, Math.max(40, W*H/4200)));
+    flakes = Array.from({length:n}, () => make(true));
+    if(reduce) draw(0);
+  }
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    for(const f of flakes){
+      const x = f.x + Math.sin(t*f.fq + f.ph)*f.sw;
+      ctx.globalAlpha = f.a;
+      ctx.drawImage(sp, x-f.r, f.y-f.r, f.r*2, f.r*2);
+    }
+    ctx.globalAlpha = 1;
+  }
+  let last = performance.now(), time = 0;
+  function frame(now){
+    const dt = Math.min(.05, (now-last)/1000); last = now; time += dt;
+    for(const f of flakes){
+      f.y += f.vy*dt;
+      if(f.y > H + 12){ Object.assign(f, make(false), {x: rnd(0,W)}); }
+    }
+    draw(time);
+    requestAnimationFrame(frame);
+  }
+  new ResizeObserver(resize).observe(host);
+  resize();
+  if(!reduce) requestAnimationFrame(frame);
+})();
+
+</script>
+
+
+<script id="settings-i18n-script">
+(function(){
+  const D = {
+    fa:{home:"خانه",settings:"تنظیمات",about:"درباره ما",method:"روش اتصال",advanced:"تنظیمات پیشرفته",language:"زبان",language_label:"زبان برنامه",ready:"آماده اتصال",tunnel:"با یک لمس، تونل امن باز می‌شود",connect:"اتصال",disconnected:"قطع",latency:"تأخیر (ms)",download:"دریافت",upload:"ارسال"},
+    en:{home:"Home",settings:"Settings",about:"About us",method:"Connection method",advanced:"Advanced settings",language:"Language",language_label:"App language",ready:"Ready to connect",tunnel:"Tap once to open the secure tunnel",connect:"Connect",disconnected:"Disconnected",latency:"Latency (ms)",download:"Download",upload:"Upload"},
+    zh:{home:"主页",settings:"设置",about:"关于我们",method:"连接方式",advanced:"高级设置",language:"语言",language_label:"应用语言",ready:"准备连接",tunnel:"轻触一次即可打开安全隧道",connect:"连接",disconnected:"已断开",latency:"延迟 (ms)",download:"下载",upload:"上传",
+      "0":"0","Connection method":"连接方式","Connect or disconnect":"连接或断开","Traffic route":"流量路径","Toggle display mode":"切换显示模式","White mode / Dark mode":"白色模式 / 深色模式","This is only a visual mockup; no real connection is made.":"这只是一个界面演示，不会建立真实连接。","Made with":"用","by":"制作","SOFT400":"SOFT400","Latency (ms)":"延迟（毫秒）","Download":"下载","Upload":"上传","You":"你","Internet":"互联网","You are connected":"已连接","Cancelled":"已取消","Disconnect first":"请先断开连接","Change applies on the next connection":"更改将在下次连接时生效","You connect with Psiphon":"你通过 Psiphon 连接","You connect with Tor":"你通过 Tor 连接","You connect with S4VPN":"你通过 S4VPN 连接","Fetching S4VPN configuration":"正在获取 S4VPN 配置","Light":"轻量","exit ":"出口 ","SOCKS5 · WARP exit":"SOCKS5 · WARP 出口","SOCKS5 · White":"SOCKS5 · 白色","HTTP · White":"HTTP · 白色","Local network":"本地网络","Fetching subscription":"正在获取订阅","Testing servers and auto-selecting":"正在测试服务器并自动选择","Checking server access":"正在检查服务器连通性","Manual":"手动","Automatic (fastest)":"自动（最快）","Test again":"重新测试","Server list":"服务器列表","White · Germany 1":"白色 · 德国 1","White · Netherlands 1":"白色 · 荷兰 1","White · France 1":"白色 · 法国 1","White · Türkiye 1":"白色 · 土耳其 1","White · USA 1":"白色 · 美国 1","White · Finland 1":"白色 · 芬兰 1","White · United Kingdom 1":"白色 · 英国 1","White · Canada 1":"白色 · 加拿大 1","White automatically takes the fastest server":"白色会自动选择最快的服务器","White":"白色","White runs on the Mihomo core and picks its servers from the built-in subscription or your own link.":"白色基于 Mihomo 内核运行，并从内置订阅或你自己的链接中选择服务器。","Connection source":"连接来源","White built-in":"白色内置","Personal":"自定义","Subscription link":"订阅链接","URL, YAML, JSON or a list of VLESS, VMess, Trojan, Hysteria2, Shadowsocks, WireGuard or SOCKS5 links.":"URL、YAML、JSON，或 VLESS、VMess、Trojan、Hysteria2、Shadowsocks、WireGuard、SOCKS5 链接列表。","Server selection":"服务器选择","List order":"列表顺序","Lowest latency":"最低延迟","Fastest":"最快","Subscription order":"订阅顺序","Connection chain":"连接链","WARP → server":"WARP → 服务器","Routing mode":"路由模式","Subscription rules":"订阅规则","Direct bypass for Iran":"伊朗直连绕过","Global proxy":"全局代理","DNS mode":"DNS 模式","DNS server address":"DNS 服务器地址","Noise and DPI packets":"噪声与 DPI 数据包","Full":"完整","IP fronting (IP Fronting)":"IP 前置（IP Fronting）","Traffic is hidden on another valid IP so inspection never sees it.":"流量会隐藏在另一个有效 IP 上，使审查无法看到。","White built-in subscriptions; no link needed, always up to date.":"白色内置订阅；无需链接，始终最新。","Your own subscription link; YAML, JSON or a list of proxy links.":"你自己的订阅链接；YAML、JSON 或代理链接列表。","The fastest tested server is picked every time.":"每次都选择测试最快的服务器。","You pick one specific server from the list.":"你从列表中指定一个服务器。","Traffic goes straight to the selected server.":"流量直接连接到所选服务器。","Through WARP first, then the server; for when the server is blocked directly.":"先经 WARP 再到服务器；适用于服务器直连被封时。","The active rules inside the subscription are used.":"使用订阅中当前生效的规则。","Only Iranian sites bypass via Iran; everything else goes through White.":"仅伊朗网站走伊朗线路，其余全部经白色。","All traffic goes through the proxy.":"全部流量经代理。","Automatic configuration based on the subscription.":"根据订阅自动配置。","Encrypted DNS over HTTPS.":"通过 HTTPS 的加密 DNS。","Encrypted DNS over TLS.":"通过 TLS 的加密 DNS。","No extra packets; zero overhead.":"不额外发包；零开销。","Minimum noise packets to confuse DPI.":"最少噪声数据包，用于干扰 DPI。","Full noise packets and DPI-confusing packets.":"完整噪声与干扰 DPI 的数据包。","Split tunnel":"分流","Split tunnel mode":"分流模式","Selected apps outside the VPN":"选定的应用走 VPN 之外","Only selected apps inside the VPN":"仅选定应用走 VPN 内","Number of selected apps":"选定应用数量","All apps go through the VPN.":"所有应用都走 VPN。","Selected apps work without the VPN.":"选定应用不经 VPN。","Only selected apps go through the VPN.":"仅选定应用走 VPN。","Network sharing":"网络共享","Share the VPN on the network":"在网络中共享 VPN","Other devices use White through the HTTP or SOCKS5 proxy.":"其他设备通过 HTTP 或 SOCKS5 代理使用白色。","Require a password":"需要密码","Protect access with the generated username and password.":"使用生成的用户名和密码保护访问。","Clean contaminated addresses":"清理受污染地址","Suspicious addresses are set aside in the server list.":"可疑地址会在服务器列表中被排除。","Instead of an unknown device, you are enrolled as an organization-managed device.":"你会被注册为组织管理设备，而不是未知设备。","Organization filtering and logging are applied and your traffic is logged. Off by default.":"将应用组织级过滤与日志记录，并记录你的流量。默认关闭。","If Cloudflare rejects the stored identity, a new one is registered.":"如果 Cloudflare 拒绝已保存的身份，将注册新的身份。","e.g. DE":"例如 DE","e.g. 80":"例如 80","Turbo":"加速","Both":"两者","IP version":"IP 版本","Outer hop":"外层跳","Inner hop":"内层跳","The one your network sees. The port is required.":"你的网络看到的地址。端口为必填。","Reached from inside the outer hop and must have a different address.":"从外层跳内部到达，地址必须不同。","The two hops must have different addresses.":"两层跳的地址必须不同。","Protocol version":"协议版本","Camouflage profile (Noize)":"伪装配置（Noize）","Two-letter country code.":"两位国家代码。","Default: pt/ next to the app":"默认：应用旁的 pt/","Stability and data check":"稳定性与数据检查","End-to-end data path check":"端到端数据路径检查","Check timeout (seconds)":"检查超时（秒）","Startup timeout (seconds)":"启动超时（秒）","Reconnect delay (seconds)":"重连延迟（秒）",
+    
+      "Reset to default settings":"恢复默认设置","All settings are back to their defaults.":"所有设置已恢复默认。"
+    },
+    ja:{home:"ホーム",settings:"設定",about:"このアプリについて",method:"接続方法",advanced:"詳細設定",language:"言語",language_label:"アプリの言語",ready:"接続準備完了",tunnel:"タップして安全なトンネルを開きます",connect:"接続",disconnected:"切断",latency:"遅延 (ms)",download:"受信",upload:"送信",
+      "0":"0","Connection method":"接続方式","Connect or disconnect":"接続または切断","Traffic route":"通信ルート","Toggle display mode":"表示モードを切り替え","White mode / Dark mode":"ホワイトモード / ダークモード","This is only a visual mockup; no real connection is made.":"これは見た目だけのデモで、実際の接続は行われません。","Made with":"制作","by":"担当","SOFT400":"SOFT400","Latency (ms)":"遅延（ミリ秒）","Download":"受信","Upload":"送信","You":"あなた","Internet":"インターネット","You are connected":"接続しました","Cancelled":"キャンセルしました","Disconnect first":"先に切断してください","Change applies on the next connection":"変更は次回の接続時に適用されます","You connect with Psiphon":"Psiphon で接続します","You connect with Tor":"Tor で接続します","You connect with S4VPN":"S4VPN に接続します","Fetching S4VPN configuration":"S4VPN 設定を取得中","Light":"軽量","exit ":"出口 ","SOCKS5 · WARP exit":"SOCKS5 · WARP 出口","SOCKS5 · White":"SOCKS5 · ホワイト","HTTP · White":"HTTP · ホワイト","Local network":"ローカルネットワーク","Fetching subscription":"サブスクリプションを取得中","Testing servers and auto-selecting":"サーバーをテストして自動選択中","Checking server access":"サーバーへの接続を確認中","Manual":"手動","Automatic (fastest)":"自動（最速）","Test again":"再テスト","Server list":"サーバーリスト","White · Germany 1":"ホワイト · ドイツ 1","White · Netherlands 1":"ホワイト · オランダ 1","White · France 1":"ホワイト · フランス 1","White · Türkiye 1":"ホワイト · トルコ 1","White · USA 1":"ホワイト · アメリカ 1","White · Finland 1":"ホワイト · フィンランド 1","White · United Kingdom 1":"ホワイト · イギリス 1","White · Canada 1":"ホワイト · カナダ 1","White automatically takes the fastest server":"ホワイトが最速サーバーを自動で選択します","White":"ホワイト","White runs on the Mihomo core and picks its servers from the built-in subscription or your own link.":"ホワイトは Mihomo コアで動作し、内蔵サブスクリプションまたは自分のリンクからサーバーを選びます。","Connection source":"接続元","White built-in":"ホワイト内蔵","Personal":"カスタム","Subscription link":"サブスクリプションリンク","URL, YAML, JSON or a list of VLESS, VMess, Trojan, Hysteria2, Shadowsocks, WireGuard or SOCKS5 links.":"URL、YAML、JSON、または VLESS、VMess、Trojan、Hysteria2、Shadowsocks、WireGuard、SOCKS5 のリンク一覧。","Server selection":"サーバー選択","List order":"リスト順","Lowest latency":"最小遅延","Fastest":"最速","Subscription order":"サブスクリプション順","Connection chain":"接続チェーン","WARP → server":"WARP → サーバー","Routing mode":"ルーティングモード","Subscription rules":"サブスクリプションルール","Direct bypass for Iran":"イラン直行バイパス","Global proxy":"全体プロキシ","DNS mode":"DNS モード","DNS server address":"DNS サーバーアドレス","Noise and DPI packets":"ノイズと DPI パケット","Full":"最大","IP fronting (IP Fronting)":"IP フロントィング（IP Fronting）","Traffic is hidden on another valid IP so inspection never sees it.":"通信を別の有効な IP に隠し、検閲に見せないようにします。","White built-in subscriptions; no link needed, always up to date.":"ホワイト内蔵のサブスクリプション。リンク不要で常に最新です。","Your own subscription link; YAML, JSON or a list of proxy links.":"自分のサブスクリプションリンク。YAML、JSON、またはプロキシリンクの一覧。","The fastest tested server is picked every time.":"毎回テストで最速だったサーバーが選ばれます。","You pick one specific server from the list.":"リストから特定のサーバーを自分で選びます。","Traffic goes straight to the selected server.":"通信は選択したサーバーへ直接送られます。","Through WARP first, then the server; for when the server is blocked directly.":"まず WARP、その後サーバー。サーバーへの直接接続が塞がれている場合向けです。","The active rules inside the subscription are used.":"サブスクリプション内の有効なルールが使われます。","Only Iranian sites bypass via Iran; everything else goes through White.":"イランのサイトのみイラン経由になり、それ以外はホワイトを通ります。","All traffic goes through the proxy.":"すべての通信がプロキシを通ります。","Automatic configuration based on the subscription.":"サブスクリプションに基づく自動設定。","Encrypted DNS over HTTPS.":"HTTPS 経由の暗号化 DNS。","Encrypted DNS over TLS.":"TLS 経由の暗号化 DNS。","No extra packets; zero overhead.":"追加パケットなし、オーバーヘッドゼロ。","Minimum noise packets to confuse DPI.":"DPI を欺く最小限のノイズパケット。","Full noise packets and DPI-confusing packets.":"完全なノイズと DPI 混同パケット。","Split tunnel":"スプリットトンネリング","Split tunnel mode":"スプリットトンネルモード","Selected apps outside the VPN":"選択したアプリを VPN の外へ","Only selected apps inside the VPN":"選択したアプリのみ VPN の中へ","Number of selected apps":"選択したアプリ数","All apps go through the VPN.":"すべてのアプリが VPN を通ります。","Selected apps work without the VPN.":"選択したアプリは VPN を使わずに動作します。","Only selected apps go through the VPN.":"選択したアプリのみ VPN を通ります。","Network sharing":"ネットワーク共有","Share the VPN on the network":"ネットワーク上で VPN を共有","Other devices use White through the HTTP or SOCKS5 proxy.":"他の端末は HTTP または SOCKS5 プロキシ経由でホワイトを利用します。","Require a password":"パスワードを必須にする","Protect access with the generated username and password.":"生成されたユーザー名とパスワードでアクセスを保護します。","Clean contaminated addresses":"汚染されたアドレスを整理","Suspicious addresses are set aside in the server list.":"不審なアドレスはサーバーリストから外されます。","Instead of an unknown device, you are enrolled as an organization-managed device.":"不明な端末ではなく、組織管理端末として登録されます。","Organization filtering and logging are applied and your traffic is logged. Off by default.":"組織のフィルタリングとログが有効になり、通信が記録されます。既定は無効です。","If Cloudflare rejects the stored identity, a new one is registered.":"保存された ID が Cloudflare に拒否された場合、新しい ID を登録します。","e.g. DE":"例：DE","e.g. 80":"例：80","Turbo":"ターボ","Both":"両方","IP version":"IP バージョン","Outer hop":"外側ホップ","Inner hop":"内側ホップ","The one your network sees. The port is required.":"ネットワークから見える側です。ポートは必須です。","Reached from inside the outer hop and must have a different address.":"外側ホップの内側から到達し、アドレスが異なる必要があります。","The two hops must have different addresses.":"2 つのホップは異なるアドレスである必要があります。","Protocol version":"プロトコルバージョン","Camouflage profile (Noize)":"偽装プロファイル（Noize）","Two-letter country code.":"2 文字の国コード。","Default: pt/ next to the app":"既定：アプリの隣の pt/","Stability and data check":"安定性とデータ確認","End-to-end data path check":"エンドツーエンド経路確認","Check timeout (seconds)":"確認タイムアウト（秒）","Startup timeout (seconds)":"起動タイムアウト（秒）","Reconnect delay (seconds)":"再接続の待ち時間（秒）",
+    
+      "Reset to default settings":"初期設定に戻す","All settings are back to their defaults.":"すべての設定を初期状態に戻しました。"
+    },
+    de:{home:"Startseite",settings:"Einstellungen",about:"Über uns",method:"Verbindungsmethode",advanced:"Erweiterte Einstellungen",language:"Sprache",language_label:"App-Sprache",ready:"Bereit zur Verbindung",tunnel:"Einmal tippen, um den sicheren Tunnel zu öffnen",connect:"Verbinden",disconnected:"Getrennt",latency:"Latenz (ms)",download:"Download",upload:"Upload",
+      "0":"0","Connection method":"Verbindungsmethode","Connect or disconnect":"Verbinden oder trennen","Traffic route":"Datenroute","Toggle display mode":"Anzeigemodus umschalten","White mode / Dark mode":"Weißer Modus / Dunkler Modus","This is only a visual mockup; no real connection is made.":"Dies ist nur eine optische Demo; es wird keine echte Verbindung aufgebaut.","Made with":"Erstellt mit","by":"von","SOFT400":"SOFT400","Latency (ms)":"Latenz (ms)","You":"Sie","Internet":"Internet","You are connected":"Verbunden","Cancelled":"Abgebrochen","Disconnect first":"Zuerst trennen","Change applies on the next connection":"Änderung gilt ab der nächsten Verbindung","You connect with Psiphon":"Sie verbinden sich mit Psiphon","You connect with Tor":"Sie verbinden sich mit Tor","You connect with S4VPN":"Sie verbinden sich mit S4VPN","Fetching S4VPN configuration":"S4VPN-Konfiguration wird geladen","Light":"Leicht","exit ":"Ausgang ","SOCKS5 · WARP exit":"SOCKS5 · WARP-Ausgang","SOCKS5 · White":"SOCKS5 · White","HTTP · White":"HTTP · White","Local network":"Lokales Netzwerk","Fetching subscription":"Abonnement wird geladen","Testing servers and auto-selecting":"Server werden getestet und automatisch gewählt","Checking server access":"Serverzugriff wird geprüft","Manual":"Manuell","Automatic (fastest)":"Automatisch (schnellste)","Test again":"Erneut testen","Server list":"Serverliste","White · Germany 1":"White · Deutschland 1","White · Netherlands 1":"White · Niederlande 1","White · France 1":"White · Frankreich 1","White · Türkiye 1":"White · Türkei 1","White · USA 1":"White · USA 1","White · Finland 1":"White · Finnland 1","White · United Kingdom 1":"White · Großbritannien 1","White · Canada 1":"White · Kanada 1","White automatically takes the fastest server":"White wählt automatisch den schnellsten Server","White":"White","White runs on the Mihomo core and picks its servers from the built-in subscription or your own link.":"White läuft auf dem Mihomo-Kern und wählt seine Server aus dem eingebauten Abonnement oder Ihrem eigenen Link.","Connection source":"Verbindungsquelle","White built-in":"White integriert","Personal":"Eigener","Subscription link":"Abonnement-Link","URL, YAML, JSON or a list of VLESS, VMess, Trojan, Hysteria2, Shadowsocks, WireGuard or SOCKS5 links.":"URL, YAML, JSON oder eine Liste von VLESS-, VMess-, Trojan-, Hysteria2-, Shadowsocks-, WireGuard- oder SOCKS5-Links.","Server selection":"Serverauswahl","List order":"Listenreihenfolge","Lowest latency":"Geringste Latenz","Fastest":"Schnellste","Subscription order":"Abonnementreihenfolge","Connection chain":"Verbindungskette","WARP → server":"WARP → Server","Routing mode":"Routing-Modus","Subscription rules":"Abonnementregeln","Direct bypass for Iran":"Direktumgehung für Iran","Global proxy":"Globaler Proxy","DNS mode":"DNS-Modus","DNS server address":"DNS-Serveradresse","Noise and DPI packets":"Rausch- und DPI-Pakete","Full":"Voll","IP fronting (IP Fronting)":"IP-Fronting (IP Fronting)","Traffic is hidden on another valid IP so inspection never sees it.":"Der Datenverkehr wird auf einer anderen gültigen IP versteckt, sodass Überprüfungen ihn nicht sehen.","White built-in subscriptions; no link needed, always up to date.":"Integrierte White-Abonnements; kein Link nötig, immer aktuell.","Your own subscription link; YAML, JSON or a list of proxy links.":"Ihr eigener Abonnement-Link; YAML, JSON oder eine Liste von Proxy-Links.","The fastest tested server is picked every time.":"Jedes Mal wird der schnellste getestete Server gewählt.","You pick one specific server from the list.":"Sie wählen einen bestimmten Server aus der Liste.","Traffic goes straight to the selected server.":"Der Datenverkehr geht direkt zum gewählten Server.","Through WARP first, then the server; for when the server is blocked directly.":"Zuerst durch WARP, dann zum Server; wenn der Server direkt blockiert ist.","The active rules inside the subscription are used.":"Die aktiven Regeln im Abonnement werden verwendet.","Only Iranian sites bypass via Iran; everything else goes through White.":"Nur iranische Seiten umgehen über Iran; alles andere läuft durch White.","All traffic goes through the proxy.":"Gesamter Datenverkehr läuft über den Proxy.","Automatic configuration based on the subscription.":"Automatische Konfiguration basierend auf dem Abonnement.","Encrypted DNS over HTTPS.":"Verschlüsseltes DNS über HTTPS.","Encrypted DNS over TLS.":"Verschlüsseltes DNS über TLS.","No extra packets; zero overhead.":"Keine zusätzlichen Pakete; null Overhead.","Minimum noise packets to confuse DPI.":"Minimale Rauschpakete, um DPI zu verwirren.","Full noise packets and DPI-confusing packets.":"Volle Rauschpakete und DPI-verwirrende Pakete.","Split tunnel":"Split-Tunnel","Split tunnel mode":"Split-Tunnel-Modus","Selected apps outside the VPN":"Ausgewählte Apps außerhalb des VPN","Only selected apps inside the VPN":"Nur ausgewählte Apps innerhalb des VPN","Number of selected apps":"Anzahl ausgewählter Apps","All apps go through the VPN.":"Alle Apps gehen durch das VPN.","Selected apps work without the VPN.":"Ausgewählte Apps funktionieren ohne VPN.","Only selected apps go through the VPN.":"Nur ausgewählte Apps gehen durch das VPN.","Network sharing":"Netzwerkfreigabe","Share the VPN on the network":"VPN im Netzwerk teilen","Other devices use White through the HTTP or SOCKS5 proxy.":"Andere Geräte nutzen White über den HTTP- oder SOCKS5-Proxy.","Require a password":"Passwort erforderlich","Protect access with the generated username and password.":"Zugriff mit dem generierten Benutzernamen und Passwort schützen.","Clean contaminated addresses":"Kontaminierte Adressen bereinigen","Suspicious addresses are set aside in the server list.":"Verdächtige Adressen werden in der Serverliste aussortiert.","Instead of an unknown device, you are enrolled as an organization-managed device.":"Statt eines unbekannten Geräts werden Sie als organisationsverwaltetes Gerät registriert.","Organization filtering and logging are applied and your traffic is logged. Off by default.":"Organisationsfilterung und Protokollierung werden angewendet und Ihr Datenverkehr wird protokolliert. Standardmäßig aus.","If Cloudflare rejects the stored identity, a new one is registered.":"Wenn Cloudflare die gespeicherte Identität ablehnt, wird eine neue registriert.","e.g. DE":"z. B. DE","e.g. 80":"z. B. 80","Turbo":"Turbo","Both":"Beide","IP version":"IP-Version","Outer hop":"Äußerer Hop","Inner hop":"Innerer Hop","The one your network sees. The port is required.":"Der, den Ihr Netzwerk sieht. Der Port ist erforderlich.","Reached from inside the outer hop and must have a different address.":"Wird von innen im äußeren Hop erreicht und muss eine andere Adresse haben.","The two hops must have different addresses.":"Die beiden Hops müssen unterschiedliche Adressen haben.","Protocol version":"Protokollversion","Camouflage profile (Noize)":"Tarnprofil (Noize)","Two-letter country code.":"Zweibuchstaben-Ländercode.","Default: pt/ next to the app":"Standard: pt/ neben der App","Stability and data check":"Stabilitäts- und Datenprüfung","End-to-end data path check":"Ende-zu-Ende-Datenpfadprüfung","Check timeout (seconds)":"Prüf-Zeitlimit (Sekunden)","Startup timeout (seconds)":"Start-Zeitlimit (Sekunden)","Reconnect delay (seconds)":"Wiederverbindungsverzögerung (Sekunden)",
+    
+      "Reset to default settings":"Auf Standard zurücksetzen","All settings are back to their defaults.":"Alle Einstellungen stehen wieder auf dem Standard."
+    },
+    ru:{home:"Главная",settings:"Настройки",about:"О нас",method:"Способ подключения",advanced:"Расширенные настройки",language:"Язык",language_label:"Язык приложения",ready:"Готово к подключению",tunnel:"Нажмите один раз, чтобы открыть защищённый туннель",connect:"Подключить",disconnected:"Отключено",latency:"Задержка (мс)",download:"Получение",upload:"Отправка",
+      "0":"0","Connection method":"Способ подключения","Connect or disconnect":"Подключиться или отключиться","Traffic route":"Маршрут трафика","Toggle display mode":"Переключить режим отображения","White mode / Dark mode":"Белый режим / тёмный режим","This is only a visual mockup; no real connection is made.":"Это только визуальный макет; реальное подключение не выполняется.","Made with":"Сделано с","by":"автор","SOFT400":"SOFT400","Latency (ms)":"Задержка (мс)","Download":"Приём","Upload":"Передача","You":"Вы","Internet":"Интернет","You are connected":"Вы подключены","Cancelled":"Отменено","Disconnect first":"Сначала отключитесь","Change applies on the next connection":"Изменение применится при следующем подключении","You connect with Psiphon":"Вы подключаетесь через Psiphon","You connect with Tor":"Вы подключаетесь через Tor","You connect with S4VPN":"Вы подключаетесь через S4VPN","Fetching S4VPN configuration":"Загрузка конфигурации S4VPN","Light":"Лёгкий","exit ":"выход ","SOCKS5 · WARP exit":"SOCKS5 · выход WARP","SOCKS5 · White":"SOCKS5 · White","HTTP · White":"HTTP · White","Local network":"Локальная сеть","Fetching subscription":"Загрузка подписки","Testing servers and auto-selecting":"Проверка серверов и автовыбор","Checking server access":"Проверка доступа к серверу","Manual":"Вручную","Automatic (fastest)":"Автоматически (самый быстрый)","Test again":"Проверить снова","Server list":"Список серверов","White · Germany 1":"White · Германия 1","White · Netherlands 1":"White · Нидерланды 1","White · France 1":"White · Франция 1","White · Türkiye 1":"White · Турция 1","White · USA 1":"White · США 1","White · Finland 1":"White · Финляндия 1","White · United Kingdom 1":"White · Великобритания 1","White · Canada 1":"White · Канада 1","White automatically takes the fastest server":"White автоматически выбирает самый быстрый сервер","White":"White","White runs on the Mihomo core and picks its servers from the built-in subscription or your own link.":"White работает на ядре Mihomo и выбирает серверы из встроенной подписки или вашей ссылки.","Connection source":"Источник подключения","White built-in":"Встроенная White","Personal":"Своя","Subscription link":"Ссылка подписки","URL, YAML, JSON or a list of VLESS, VMess, Trojan, Hysteria2, Shadowsocks, WireGuard or SOCKS5 links.":"URL, YAML, JSON или список ссылок VLESS, VMess, Trojan, Hysteria2, Shadowsocks, WireGuard или SOCKS5.","Server selection":"Выбор сервера","List order":"Порядок списка","Lowest latency":"Наименьшая задержка","Fastest":"Самый быстрый","Subscription order":"Порядок подписки","Connection chain":"Цепочка подключения","WARP → server":"WARP → сервер","Routing mode":"Режим маршрутизации","Subscription rules":"Правила подписки","Direct bypass for Iran":"Прямой обход для Ирана","Global proxy":"Глобальный прокси","DNS mode":"Режим DNS","DNS server address":"Адрес DNS-сервера","Noise and DPI packets":"Шум и пакеты DPI","Full":"Полный","IP fronting (IP Fronting)":"IP-фронтинг (IP Fronting)","Traffic is hidden on another valid IP so inspection never sees it.":"Трафик скрывается на другом действительном IP, поэтому проверка его не видит.","White built-in subscriptions; no link needed, always up to date.":"Встроенные подписки White; ссылка не нужна, всегда актуальны.","Your own subscription link; YAML, JSON or a list of proxy links.":"Ваша ссылка подписки; YAML, JSON или список ссылок прокси.","The fastest tested server is picked every time.":"Каждый раз выбирается самый быстрый из проверенных серверов.","You pick one specific server from the list.":"Вы выбираете один конкретный сервер из списка.","Traffic goes straight to the selected server.":"Трафик идёт напрямую на выбранный сервер.","Through WARP first, then the server; for when the server is blocked directly.":"Сначала через WARP, затем к серверу; когда сервер заблокирован напрямую.","The active rules inside the subscription are used.":"Используются активные правила внутри подписки.","Only Iranian sites bypass via Iran; everything else goes through White.":"Только иранские сайты идут через Иран; остальное — через White.","All traffic goes through the proxy.":"Весь трафик идёт через прокси.","Automatic configuration based on the subscription.":"Автоматическая настройка на основе подписки.","Encrypted DNS over HTTPS.":"Зашифрованный DNS поверх HTTPS.","Encrypted DNS over TLS.":"Зашифрованный DNS поверх TLS.","No extra packets; zero overhead.":"Без лишних пакетов; нулевые накладные расходы.","Minimum noise packets to confuse DPI.":"Минимум шумовых пакетов для обхода DPI.","Full noise packets and DPI-confusing packets.":"Полные шумовые пакеты и пакеты, сбивающие DPI.","Split tunnel":"Раздельное туннелирование","Split tunnel mode":"Режим раздельного туннелирования","Selected apps outside the VPN":"Выбранные приложения вне VPN","Only selected apps inside the VPN":"Только выбранные приложения внутри VPN","Number of selected apps":"Количество выбранных приложений","All apps go through the VPN.":"Все приложения идут через VPN.","Selected apps work without the VPN.":"Выбранные приложения работают без VPN.","Only selected apps go through the VPN.":"Только выбранные приложения идут через VPN.","Network sharing":"Общий доступ по сети","Share the VPN on the network":"Поделиться VPN по сети","Other devices use White through the HTTP or SOCKS5 proxy.":"Другие устройства используют White через прокси HTTP или SOCKS5.","Require a password":"Требовать пароль","Protect access with the generated username and password.":"Защитите доступ сгенерированным именем пользователя и паролем.","Clean contaminated addresses":"Очистка скомпрометированных адресов","Suspicious addresses are set aside in the server list.":"Подозрительные адреса исключаются из списка серверов.","Instead of an unknown device, you are enrolled as an organization-managed device.":"Вместо неизвестного устройства вы регистрируетесь как устройство под управлением организации.","Organization filtering and logging are applied and your traffic is logged. Off by default.":"Применяются фильтрация и журналирование организации, ваш трафик записывается. По умолчанию выключено.","If Cloudflare rejects the stored identity, a new one is registered.":"Если Cloudflare отклоняет сохранённую идентичность, регистрируется новая.","e.g. DE":"например DE","e.g. 80":"например 80","Turbo":"Турбо","Both":"Оба","IP version":"Версия IP","Outer hop":"Внешний хоп","Inner hop":"Внутренний хоп","The one your network sees. The port is required.":"Тот, что видит ваша сеть. Порт обязателен.","Reached from inside the outer hop and must have a different address.":"Принимается изнутри внешнего хопа и должен иметь другой адрес.","The two hops must have different addresses.":"У двух хопов должны быть разные адреса.","Protocol version":"Версия протокола","Camouflage profile (Noize)":"Профиль маскировки (Noize)","Two-letter country code.":"Двухбуквенный код страны.","Default: pt/ next to the app":"По умолчанию: pt/ рядом с приложением","Stability and data check":"Проверка стабильности и данных","End-to-end data path check":"Сквозная проверка пути данных","Check timeout (seconds)":"Таймаут проверки (секунды)","Startup timeout (seconds)":"Таймаут запуска (секунды)","Reconnect delay (seconds)":"Задержка переподключения (секунды)",
+    
+      "Reset to default settings":"Сбросить настройки","All settings are back to their defaults.":"Все настройки сброшены на значения по умолчанию."
+    }
+  };
+
+  // Complete visible UI vocabulary. English is the neutral source for the
+  // remaining settings labels/help text; non-Farsi languages never leave
+  // Persian text behind.
+  const EN = {
+    "نحوه اتصال":"Connection mode","به‌تنهایی":"Standalone","داخل WARP":"Inside WARP","WARP داخل Psiphon":"WARP inside Psiphon","WARP داخل Tor":"WARP inside Tor",
+    "شکل اتصال":"Connection shape","خودکار":"Automatic","فقط CDN":"CDN only","مستقیم":"Direct","کشور خروجی":"Exit country",
+    "آدرس‌های CDN":"CDN addresses","با کاما یا فاصله جدا کنید":"Separate with commas or spaces","نام سرور (SNI) برای CDN":"CDN server name (SNI)",
+    "آدرس پروکسی Psiphon":"Psiphon proxy address","پروکسی HTTP برای Psiphon":"HTTP proxy for Psiphon","فایل تنظیمات JSON دلخواه":"Custom JSON configuration file",
+    "پوشه داده Psiphon":"Psiphon data directory","مسیر psiphon-tunnel-core":"psiphon-tunnel-core path","اگر کنار برنامه نیست":"If it is not beside the app",
+    "فقط برای استفاده از اعتبارنامه یا فهرست سرور متفاوت.":"Only for custom credentials or a different server list.",
+    "پیش‌فرض کنار فایل هویت":"Default: next to the identity file","خالی = خاموش":"Empty = off",
+    "تور":"Tor","پل‌ها (Bridge)":"Bridges","همیشه پل":"Always use bridges","بدون پل":"No bridges","پل دلخواه":"Custom bridge",
+    "خط‌های پل":"Bridge lines","هر پل در یک خط.":"One bridge per line.","فایل پل‌ها":"Bridge file","ترنسپورت (Pluggable Transport)":"Transport (Pluggable Transport)",
+    "به‌طور پیش‌فرض obfs4 فرض می‌شود و باینری‌ها خودکار پیدا می‌شوند.":"obfs4 is assumed by default and binaries are detected automatically.",
+    "پوشه ترنسپورت‌ها":"Transport directory","رله‌های Onionoo":"Onionoo relays","فقط رله":"Relays only","خاموش":"Off",
+    "تعداد رله (اختیاری)":"Relay count (optional)","پورت رله‌ها":"Relay ports","وب (۸۰ و ۴۴۳)":"Web (80 and 443)","همه":"All",
+    "«وب» پورت‌هایی است که فایروال‌های سخت‌گیر معمولاً باز می‌گذارند.":"Web ports are commonly left open by strict firewalls.",
+    "آدرس پروکسی Tor":"Tor proxy address","پروکسی HTTP برای Tor":"HTTP proxy for Tor","پوشه داده Tor":"Tor data directory",
+    "تونل WARP":"WARP tunnel","نوع تونل":"Tunnel type","حالت جست‌وجوی آدرس":"Address search mode",
+    "آرام و صبور؛ برای شبکه‌هایی که اسکن را تشخیص می‌دهند.":"Calm and patient; for networks that detect scanning.",
+    "سبک و سریع؛ مناسب شبکه‌هایی که فقط آدرس‌های شناخته‌شده را می‌بندند.":"Light and fast; for networks that block only known addresses.",
+    "سریع؛ به اولین آدرسی که جواب بدهد راضی می‌شود.":"Fast; accepts the first address that responds.",
+    "سنگین‌تر؛ وقتی firewall جواب نداد.":"Thorough; when the firewall defeats lighter modes.",
+    "سنگین‌ترین؛ وقتی دست‌دهی شناسایی می‌شود.":"Most thorough; when the handshake is detected.",
+    "حداقل استتار با کمترین سربار.":"Minimum camouflage with minimal overhead.",
+    "متعادل":"Balanced","دقیق":"Thorough","پنهان":"Stealth","تأییدشده":"Verified","آهنین":"Ironclad",
+    "تونل":"Tunnel","در این حالت فقط MASQUE روی HTTP/2 ممکن است؛ WireGuard و Gool و MASQUE-in-MASQUE غیرفعال شدند.":"In this mode only MASQUE over HTTP/2 is available; WireGuard, Gool and MASQUE-in-MASQUE are disabled.",
+    "شروع‌کننده QUIC v2":"QUIC v2 starter","تکه‌تکه کردن ClientHello":"Fragment ClientHello","فاصله بین تکه‌ها (میلی‌ثانیه)":"Fragment delay (ms)",
+    "اندازه تکه‌ها (بایت)":"Fragment size (bytes)","فاصله Keepalive (ثانیه)":"Keepalive interval (seconds)",
+    "امتحان نکردن پروفایل‌های دیگر":"Do not retry other profiles","اتصال مجدد سریع":"Quick reconnect",
+    "از آخرین آدرس سالم استفاده کن و اسکن نکن.":"Use the last working address and skip scanning.",
+    "داخل تونل":"Inside tunnel","آدرس سرور مشخص":"Specific server address","آدرس سرور برای HTTP/2":"Server address for HTTP/2",
+    "آدرس پروکسی HTTP":"HTTP proxy address","اسکن رد می‌شود.":"Scanning is skipped.","اگر UDP پورت ۴۴۳ مسدود است HTTP/2 را انتخاب کنید.":"Choose HTTP/2 if UDP port 443 is blocked.",
+    "سریع":"Fast","روشن":"On","خاموش":"Off","Firewall":"Firewall","GFW":"GFW","سنگین":"Aggressive",
+    "پروکسی محلی":"Local proxy","آدرس SOCKS5":"SOCKS5 address","پروکسی HTTP CONNECT":"HTTP CONNECT proxy",
+    "برای برنامه‌هایی که SOCKS ندارند.":"For apps that do not support SOCKS.","کشور خروجی و پروکسی بالادست":"Exit country and upstream proxy",
+    "فیلتر کشور خروجی":"Exit country filter","فاصله بررسی مجدد (ثانیه)":"Recheck interval (seconds)","پروکسی بالادست":"Upstream proxy",
+    "همه اتصال‌ها از پشت پروکسی‌ای که از قبل اجرا است می‌روند. HTTP فقط با HTTP/2 کار می‌کند.":"All connections go through an already-running proxy. HTTP works only with HTTP/2.",
+    "قوانین مسیریابی":"Routing rules","مسدود شود":"Block","مستقیم (بدون تونل)":"Direct (without tunnel)",
+    "برای بانک‌ها، شبکه محلی و سایت‌های داخلی که آدرس خارجی را نمی‌پذیرند. «private» یعنی شبکه محلی.":"For banks, local networks and sites that reject external addresses. “private” means local network.",
+    "خواندن نام از اولین بایت‌ها":"Read name from first bytes","مهلت خواندن (میلی‌ثانیه)":"Read timeout (ms)",
+    "وقتی برنامه فقط آدرس IP می‌دهد، نام را از TLS یا Host می‌خواند تا قوانین نام کار کنند.":"When the app has only an IP address, read the name from TLS or Host so name rules work.",
+    "Zero Trust (WARP برای سازمان‌ها)":"Zero Trust (WARP for organizations)","نام تیم":"Team name","روش ورود":"Login method",
+    "کد ایمیل":"Email code","توکن سرویس":"Service token","توکن موجود":"Existing token","ایمیل":"Email","شناسه سرویس":"Service ID","رمز سرویس":"Service secret","توکن":"Token",
+    "کلادفلر یک کد یک‌بارمصرف می‌فرستد؛ سه بار فرصت دارید.":"Cloudflare sends a one-time code; you have three attempts.",
+    "عبور HTTP از Gateway سازمان":"Route HTTP through organization Gateway","محدودیت‌ها و عملکرد":"Limits and performance",
+    "پروفایل عملکرد":"Performance profile","کم":"Low","متوسط":"Medium","زیاد":"High","حداکثر کلاینت همزمان":"Maximum concurrent clients",
+    "مهلت اتصال نیمه‌بسته (ثانیه)":"Half-close timeout (seconds)","Keepalive شبکه (ثانیه)":"Network keepalive (seconds)","مهلت باز شدن اتصال (ثانیه)":"Connection open timeout (seconds)",
+    "آمار و هویت دستگاه":"Statistics and device identity","نمایش آمار مصرف":"Show usage statistics","فاصله به‌روزرسانی آمار (ثانیه)":"Statistics refresh interval (seconds)",
+    "جایگزینی خودکار هویت رد‌شده":"Automatically replace rejected identity","آمار":"Statistics","هویت":"Identity",
+    "نمایش آمار مصرف":"Show usage statistics","روشن":"On","خاموش":"Off",
+    "آدرس کپی شد":"Address copied","کپی":"Copy","کپی ممکن نشد":"Copy failed",
+    "آماده اتصال":"Ready to connect","با یک لمس، تونل امن باز می‌شود":"Tap once to open the secure tunnel","اتصال":"Connect","قطع":"Disconnected",
+    "در حال اتصال":"Connecting","لغو":"Cancel","متصل":"Connected","در حال ساخت تونل…":"Building tunnel…",
+    "جست‌وجوی آدرس‌های در دسترس":"Searching available addresses","دست‌دهی امن با سرور":"Secure server handshake","آزمایش مسیر داده":"Testing data path",
+    "راه‌اندازی تونل":"Starting tunnel","راه‌اندازی پروکسی محلی":"Starting local proxy","استفاده از آدرس تعیین‌شده":"Using specified address",
+    "راه‌اندازی Psiphon":"Starting Psiphon","اتصال از پشت CDN":"Connecting through CDN","یافتن سرور در دسترس":"Finding an available server",
+    "ساخت تونل":"Building tunnel","راه‌اندازی پروکسی":"Starting proxy","راه‌اندازی پروکسی‌ها":"Starting proxies",
+    "ساخت تونل WARP":"Building WARP tunnel","راه‌اندازی Psiphon داخل تونل":"Starting Psiphon inside tunnel","آزمایش مسیر":"Testing route",
+    "دریافت دایرکتوری Tor":"Fetching Tor directory","یافتن پل مناسب":"Finding a suitable bridge","ساخت مدار Tor":"Building Tor circuit",
+    "بررسی دسترسی Tor":"Checking Tor access","بارگذاری Tor داخل تونل":"Loading Tor inside tunnel","ساخت تونل WARP از داخل Tor":"Building WARP tunnel inside Tor",
+    "راه‌اندازی Psiphon":"Starting Psiphon","ساخت تونل WARP از داخل Psiphon":"Building WARP tunnel inside Psiphon",
+    "سایفون":"Psiphon","نحوه اتصال":"Connection mode","درباره ما":"About us","زبان":"Language","زبان برنامه":"App language","تنظیمات":"Settings","تنظیمات پیشرفته":"Advanced settings","خانه":"Home",
+
+    /* --- static chrome --- */
+    "تغییر حالت نمایش":"Toggle display mode","حالت وایت / حالت تاریک":"White mode / Dark mode",
+    "روش اتصال":"Connection method","اتصال یا قطع اتصال":"Connect or disconnect","مسیر ترافیک":"Traffic route",
+    "این فقط یک شبیه‌سازی ظاهری است؛ هیچ اتصال واقعی برقرار نمی‌شود":"This is only a visual mockup; no real connection is made.",
+    "ساخته شده با":"Made with","توسط":"by","سافت۴۰۰":"SOFT400",
+    "تأخیر (ms)":"Latency (ms)","دریافت":"Download","ارسال":"Upload",
+    "شما":"You","اینترنت":"Internet","متصل شدید":"You are connected","لغو شد":"Cancelled",
+    "ابتدا اتصال را قطع کنید":"Disconnect first","تغییر با اتصال بعدی اعمال می‌شود":"Change applies on the next connection",
+    "با Psiphon متصل می‌شوید":"You connect with Psiphon","با Tor متصل می‌شوید":"You connect with Tor","با S4VPN متصل می‌شوید":"You connect with S4VPN","دریافت پیکربندی S4VPN":"Fetching S4VPN configuration",
+
+    /* --- engine help --- */
+    "کلاینت WARP کلادفلر؛ پیش‌فرض و معمولاً سریع‌ترین.":"Cloudflare WARP client; the default and usually the fastest.",
+    "ابزار عبور از فیلتر با روش‌های پوشش خودش، از جمله CDN.":"Anti-censorship tool with its own cover methods, including CDN.",
+    "شبکه Tor؛ کندتر است ولی خروجی و مسیر کاملاً متفاوتی می‌دهد.":"Tor network; slower, but a completely different exit and route.",
+    "مدرن‌ترین حالت؛ ترافیک شبیه وب معمولی است. اگر مطمئن نیستید از اینجا شروع کنید.":"The most modern mode; traffic looks like normal web traffic. Start here if you are unsure.",
+    "دو تونل WireGuard تو در تو؛ کندتر است ولی وقتی یک لایه کافی نیست کمک می‌کند.":"Two nested WireGuard tunnels; slower, but helps when one layer is not enough.",
+    "دو تونل MASQUE تو در تو؛ آدرس خروجی شما را عوض می‌کند.":"Two nested MASQUE tunnels; changes your exit address.",
+    "پیش‌فرض؛ چند آدرس جمع می‌کند و سریع‌ترین را نگه می‌دارد.":"Default; collects several addresses and keeps the fastest one.",
+    "کل بازه‌ها را می‌گردد؛ وقتی همه‌چیز بسته به نظر می‌رسد.":"Scans the whole ranges; for when everything looks blocked.",
+    "فقط آدرس‌هایی که جواب‌دادنشان اندازه‌گیری شده. روی gool و mim دو هاپ را در بازه‌های جدا نگه می‌دارد.":"Only addresses whose response was measured. On gool and mim it keeps two hops in separate ranges.",
+    "کندترین ولی مطمئن‌ترین؛ برای هر آدرس یک تونل و یک درخواست HTTP واقعی می‌سازد.":"Slowest but most reliable; builds one tunnel and one real HTTP request per address.",
+    "بدون استتار؛ فقط برای شبکه باز یا آزمایش.":"No camouflage; only for open networks or testing.",
+    "پیش‌فرض MASQUE؛ متعادل و پیشنهادی برای ایران.":"Default for MASQUE; balanced and recommended for Iran.",
+    "پیش‌فرض WireGuard و Gool؛ نقطه تعادل سرعت و پنهان‌کاری.":"Default for WireGuard and Gool; the balance point of speed and stealth.",
+    "بدون WARP؛ پروکسی همان Psiphon ساده است.":"Without WARP; the proxy is plain Psiphon.",
+    "ترافیک اول از WARP و بعد از Psiphon می‌گذرد. شبکه شما Psiphon را نمی‌بیند و خروجی، Psiphon است.":"Traffic goes through WARP first and Psiphon second. Your network never sees Psiphon, and the exit is Psiphon.",
+    "ترافیک اول از Psiphon و بعد از WARP می‌گذرد. شبکه شما WARP را نمی‌بیند. فقط MASQUE روی HTTP/2.":"Traffic goes through Psiphon first and WARP second. Your network never sees WARP. MASQUE over HTTP/2 only.",
+    "بدون WARP؛ پروکسی همان Tor ساده است.":"Without WARP; the proxy is plain Tor.",
+    "ترافیک اول از WARP و بعد از Tor می‌گذرد. شبکه‌ای که Tor را مسدود کرده آن را نمی‌بیند. هم خروجی WARP و هم خروجی Tor در دسترس است.":"Traffic goes through WARP first and Tor second. A network that blocks Tor never sees it. Both the WARP exit and the Tor exit are available.",
+    "ترافیک اول از Tor و بعد از WARP می‌گذرد. شبکه شما WARP را نمی‌بیند. فقط MASQUE روی HTTP/2 و Tor باید از قبل در دسترس باشد.":"Traffic goes through Tor first and WARP second. Your network never sees WARP. MASQUE over HTTP/2 only, and Tor must already be reachable.",
+    "Psiphon خودش بهترین را انتخاب می‌کند.":"Psiphon picks the best one itself.",
+    "فقط meek پشت CDN؛ برای شبکه‌هایی که بقیه روش‌ها را می‌بندند.":"Only meek behind a CDN; for networks that block every other method.",
+    "بدون پوشش CDN.":"No CDN cover.",
+    "ابتدا مستقیم امتحان می‌کند؛ اگر نشد از BridgeDB پل می‌گیرد (obfs4، سپس webtunnel، سپس snowflake).":"Tries direct first; if that fails it takes bridges from BridgeDB (obfs4, then webtunnel, then snowflake).",
+    "بدون امتحان مستقیم، یکراست سراغ پل‌ها می‌رود.":"Skips the direct attempt and goes straight to bridges.",
+    "هرگز از پل استفاده نمی‌کند، حتی اگر شبکه بسته باشد.":"Never uses bridges, even if the network is blocked.",
+    "پل‌های خودتان را جایگزین پل‌های دریافتی می‌کنید.":"Your own bridges replace the downloaded ones.",
+    "رله‌های Onionoo کنار BridgeDB به‌عنوان پل ساده استفاده می‌شوند.":"Onionoo relays are used as simple bridges alongside BridgeDB.",
+    "فقط رله‌های Onionoo؛ استخر بسیار بزرگ‌تری از BridgeDB است.":"Onionoo relays only; a much larger pool than BridgeDB.",
+    "رله‌ها استفاده نمی‌شوند.":"Relays are not used.",
+
+    /* --- missing labels, notes and placeholders --- */
+    "توربو":"Turbo","مثلاً DE":"e.g. DE","مثلاً 80":"e.g. 80",
+    "کد دو حرفی کشور. فهرست کشورهای موجود در AvailableEgressRegions خروجی Psiphon آمده است.":"Two-letter country code. The available countries are listed in Psiphon's AvailableEgressRegions.",
+    "اگر خالی باشد از فهرست داخلی Psiphon استفاده می‌شود.":"If empty, Psiphon's built-in list is used.",
+    "با حالت «داخل WARP» و «WARP داخل Psiphon» استفاده می‌شود.":"Used with the Inside WARP and WARP inside Psiphon modes.",
+    "Tor فقط در نسخه‌ای کار می‌کند که با قابلیت tor ساخته شده باشد.":"Tor only works in a build made with the tor feature.",
+    "پیش‌فرض pt/ کنار برنامه":"Default: pt/ next to the app",
+    "پروفایل استتار (Noize)":"Camouflage profile (Noize)","نسخه IP":"IP version","هر دو":"Both",
+    "اگر شبکه شما IPv6 ندارد روی IPv4 بمانید.":"Stay on IPv4 if your network has no IPv6.",
+    "هاپ بیرونی":"Outer hop","هاپ داخلی":"Inner hop",
+    "همان که شبکه شما می‌بیند. پورت الزامی است.":"The one your network sees. The port is required.",
+    "از داخل هاپ بیرونی رسیده می‌شود و باید آدرسش فرق کند.":"Reached from inside the outer hop and must have a different address.",
+    "دو هاپ باید آدرس متفاوت داشته باشند.":"The two hops must have different addresses.",
+    "نسخه پروتکل":"Protocol version",
+    "مسیر HTTP/3 را روی شبکه‌هایی که QUIC v1 را می‌بندند باز می‌کند.":"Opens the HTTP/3 path on networks that block QUIC v1.",
+    "SNI را از بازرسی‌هایی که یک بسته را می‌خوانند پنهان می‌کند.":"Hides the SNI from inspections that read a single packet.",
+    "SNI را کاملاً پنهان می‌کند، اگر شبکه اجازه بدهد.":"Hides the SNI completely, if the network allows it.",
+    "در اسکن، پروفایل‌های استتار دیگر را دوباره امتحان نکن.":"Do not retry the other camouflage profiles while scanning.",
+    "پایداری و بررسی داده":"Stability and data check","بررسی سرتاسری مسیر داده":"End-to-end data path check",
+    "قبل از باز شدن پروکسی، یک آدرس باید ترافیک واقعی رد کند.":"Before the proxy opens, one address must pass real traffic.",
+    "مهلت بررسی (ثانیه)":"Check timeout (seconds)","مهلت راه‌اندازی (ثانیه)":"Startup timeout (seconds)",
+    "تأخیر اتصال دوباره (ثانیه)":"Reconnect delay (seconds)",
+    "روی 0.0.0.0 فقط وقتی بگذارید که بخواهید تونل را با شبکه به اشتراک بگذارید؛ چیزی کاربران را احراز هویت نمی‌کند.":"Only set 0.0.0.0 if you want to share the tunnel with the network; nothing authenticates users.",
+    "!IR,RU یا DE,SE":"!IR,RU or DE,SE",
+    "با ! کشورها را ممنوع کنید، بدون ! فقط همان‌ها مجازند. تا وقتی پر نکنید هیچ بررسی‌ای انجام نمی‌شود.":"Prefix a country with ! to ban it; without it only those are allowed. Nothing is checked while it is empty.",
+    "فقط لینوکس و اندروید و نیازمند دسترسی root.":"Linux and Android only, and requires root.",
+    "اتصال به این مقصدها کاملاً رد می‌شود. هر مورد در یک خط یا با کاما.":"Connections to these destinations are blocked entirely. One per line or comma separated.",
+    "خودکار (۵۱۲ تا ۸۱۹۲)":"Automatic (512 to 8192)",
+    "تأخیر و حجم دریافت و ارسال روی صفحه خانه.":"Latency and upload/download volume on the home screen.",
+
+    /* --- White engine: servers --- */
+    "White · آلمان ۱":"White · Germany 1","White · هلند ۱":"White · Netherlands 1",
+    "White · فرانسه ۱":"White · France 1","White · ترکیه ۱":"White · Türkiye 1",
+    "White · آمریکا ۱":"White · USA 1","White · فنلاند ۱":"White · Finland 1",
+    "White · بریتانیا ۱":"White · United Kingdom 1","White · کانادا ۱":"White · Canada 1",
+    "وایت، خودکار سریع‌ترین سرور را می‌گیرد":"White automatically takes the fastest server",
+    "وایت روی ":"White on ",
+    "SOCKS5 · وایت":"SOCKS5 · White","HTTP · وایت":"HTTP · White","شبکه محلی":"Local network",
+    "دریافت سابسکریپشن":"Fetching subscription","تست سرورها و انتخاب خودکار":"Testing servers and auto-selecting",
+    "بررسی دسترسی سرور":"Checking server access","خودکار":"Automatic",
+    "خودکار (سریع‌ترین)":"Automatic (fastest)","انتخاب دستی":"Manual","تست دوباره":"Test again","فهرست سرورها":"Server list",
+
+    /* --- White engine: settings --- */
+    "White (وایت)":"White",
+    "وایت با هسته Mihomo کار می‌کند و از سابسکریپشن داخلی یا لینک خودتان سرور انتخاب می‌کند.":"White runs on the Mihomo core and picks its servers from the built-in subscription or your own link.",
+    "منبع اتصال":"Connection source","داخلی وایت":"White built-in","شخصی":"Personal",
+    "لینک سابسکریپشن":"Subscription link",
+    "URL، YAML، JSON یا فهرست لینک‌های VLESS، VMess، Trojan، Hysteria2، Shadowsocks، WireGuard یا SOCKS5.":"URL, YAML, JSON or a list of VLESS, VMess, Trojan, Hysteria2, Shadowsocks, WireGuard or SOCKS5 links.",
+    "انتخاب سرور":"Server selection","ترتیب فهرست":"List order",
+    "کمترین تأخیر":"Lowest latency","سریع‌ترین":"Fastest","ترتیب سابسکریپشن":"Subscription order",
+    "زنجیره اتصال":"Connection chain","WARP → سرور":"WARP → server",
+    "حالت مسیریابی":"Routing mode","قوانین اشتراک":"Subscription rules",
+    "عبور مستقیم ایران":"Direct bypass for Iran","پروکسی سراسری":"Global proxy",
+    "حالت DNS":"DNS mode","آدرس سرور DNS":"DNS server address",
+    "نویز و بسته‌های DPI":"Noise and DPI packets","کامل":"Full",
+    "جایگذاری IP (IP Fronting)":"IP fronting (IP Fronting)",
+    "ترافیک روی یک IP معتبر دیگر پنهان می‌شود تا بازرسی آن را نبیند.":"Traffic is hidden on another valid IP so inspection never sees it.",
+    "سابسکریپشن‌های داخلی وایت؛ بدون نیاز به لینک، همیشه به‌روز.":"White built-in subscriptions; no link needed, always up to date.",
+    "لینک سابسکریپشن خودتان؛ YAML، JSON یا فهرست لینک پروکسی.":"Your own subscription link; YAML, JSON or a list of proxy links.",
+    "هر بار سریع‌ترین سرور تست‌شده انتخاب می‌شود.":"The fastest tested server is picked every time.",
+    "یک سرور مشخص از فهرست انتخاب می‌کنید.":"You pick one specific server from the list.",
+    "ترافیک مستقیم به سرور انتخابی می‌رود.":"Traffic goes straight to the selected server.",
+    "اول از WARP و بعد به سرور؛ وقتی سرور مستقیم بسته است.":"Through WARP first, then the server; for when the server is blocked directly.",
+    "قوانین داخل سابسکریپشن فعال استفاده می‌شود.":"The active rules inside the subscription are used.",
+    "فقط سایت‌های ایرانی از مسیر ایران رد می‌شوند؛ بقیه از وایت.":"Only Iranian sites bypass via Iran; everything else goes through White.",
+    "همه ترافیک از پروکسی رد می‌شود.":"All traffic goes through the proxy.",
+    "پیکربندی خودکار بر اساس سابسکریپشن.":"Automatic configuration based on the subscription.",
+    "DNS رمزنگاری‌شده روی HTTPS.":"Encrypted DNS over HTTPS.",
+    "DNS رمزنگاری‌شده روی TLS.":"Encrypted DNS over TLS.",
+    "بدون بسته اضافه؛ سربار صفر.":"No extra packets; zero overhead.",
+    "حداقل بسته‌های نویز برای گمراه‌کردن DPI.":"Minimum noise packets to confuse DPI.",
+    "بسته‌های کامل نویز و بسته‌های گمراه‌کننده DPI.":"Full noise packets and DPI-confusing packets.",
+    "تقسیم تونل":"Split tunnel","حالت تقسیم تونل":"Split tunnel mode",
+    "برنامه‌های انتخاب‌شده خارج از VPN":"Selected apps outside the VPN",
+    "فقط برنامه‌های انتخاب‌شده داخل VPN":"Only selected apps inside the VPN",
+    "تعداد برنامه‌های انتخاب‌شده":"Number of selected apps",
+    "همه برنامه‌ها از VPN رد می‌شوند.":"All apps go through the VPN.",
+    "برنامه‌های انتخاب‌شده بدون VPN کار می‌کنند.":"Selected apps work without the VPN.",
+    "فقط برنامه‌های انتخاب‌شده از VPN رد می‌شوند.":"Only selected apps go through the VPN.",
+    "اشتراک‌گذاری در شبکه":"Network sharing","اشتراک وی‌پی‌ن در شبکه":"Share the VPN on the network",
+    "دستگاه‌های دیگر با پروکسی HTTP یا SOCKS5 از وایت استفاده کنند.":"Other devices use White through the HTTP or SOCKS5 proxy.",
+    "نیاز به رمز عبور":"Require a password",
+    "دسترسی را با نام کاربری و رمز ساخته‌شده محافظت کنید.":"Protect access with the generated username and password.",
+    "پاک‌سازی آدرس‌های آلوده":"Clean contaminated addresses",
+    "آدرس‌های مشکوک در فهرست سرورها کنار گذاشته می‌شوند.":"Suspicious addresses are set aside in the server list.",
+    "سبک":"Light","۰":"0",
+    "خروجی ":"exit ",
+    "SOCKS5 · خروجی WARP":"SOCKS5 · WARP exit",
+    "اشتراک وی‌پی‌ان در شبکه":"Share the VPN on the network",
+    "به‌جای دستگاه ناشناس، دستگاه مدیریت‌شده سازمان می‌شوید.":"Instead of an unknown device, you are enrolled as an organization-managed device.",
+    "فیلتر و ثبت سازمان اعمال می‌شود و مرورتان ثبت می‌شود. پیش‌فرض خاموش است.":"Organization filtering and logging are applied and your traffic is logged. Off by default.",
+    "اگر کلادفلر دستگاه ذخیره‌شده را نپذیرد، دستگاه تازه ثبت می‌شود.":"If Cloudflare rejects the stored identity, a new one is registered.",
+    "بازگشت به تنظیمات اولیه":"Reset to default settings",
+    "همه تنظیمات به حالت اولیه برگشت":"All settings are back to their defaults."
+  };
+
+  const L = {
+    zh:{
+      "Connection mode":"连接模式","Standalone":"单独运行","Inside WARP":"在 WARP 内","WARP inside Psiphon":"WARP 位于 Psiphon 内","WARP inside Tor":"WARP 位于 Tor 内",
+      "Connection shape":"连接方式","Automatic":"自动","CDN only":"仅 CDN","Direct":"直接","Exit country":"出口国家","CDN addresses":"CDN 地址","Separate with commas or spaces":"用逗号或空格分隔",
+      "CDN server name (SNI)":"CDN 服务器名称（SNI）","Psiphon proxy address":"Psiphon 代理地址","HTTP proxy for Psiphon":"Psiphon HTTP 代理","Custom JSON configuration file":"自定义 JSON 配置文件",
+      "Psiphon data directory":"Psiphon 数据目录","psiphon-tunnel-core path":"psiphon-tunnel-core 路径","If it is not beside the app":"如果不在应用旁边","Tor":"Tor","Bridges":"网桥","Always use bridges":"始终使用网桥","No bridges":"不使用网桥","Custom bridge":"自定义网桥",
+      "Bridge lines":"网桥线路","One bridge per line.":"每个网桥一行","Bridge file":"网桥文件","Transport (Pluggable Transport)":"传输方式（可插拔传输）","Transport directory":"传输目录","Onionoo relays":"Onionoo 中继",
+      "Relays only":"仅中继","Off":"关闭","Relay count (optional)":"中继数量（可选）","Relay ports":"中继端口","Web (80 and 443)":"Web（80 和 443）","All":"全部",
+      "WARP tunnel":"WARP 隧道","Tunnel type":"隧道类型","Address search mode":"地址搜索模式","Balanced":"均衡","Thorough":"彻底","Stealth":"隐蔽","Verified":"已验证","Ironclad":"最高强度",
+      "Fragment ClientHello":"分片 ClientHello","Fragment delay (ms)":"分片延迟（毫秒）","Fragment size (bytes)":"分片大小（字节）","Quick reconnect":"快速重连","Local proxy":"本地代理","SOCKS5 address":"SOCKS5 地址",
+      "HTTP CONNECT proxy":"HTTP CONNECT 代理","Exit country and upstream proxy":"出口国家和上游代理","Exit country filter":"出口国家过滤","Upstream proxy":"上游代理","Routing rules":"路由规则","Block":"阻止","Direct (without tunnel)":"直接（不经过隧道）",
+      "Zero Trust (WARP for organizations)":"Zero Trust（组织 WARP）","Team name":"团队名称","Login method":"登录方式","Email code":"邮箱验证码","Service token":"服务令牌","Existing token":"已有令牌","Email":"邮箱","Service ID":"服务 ID","Service secret":"服务密钥","Token":"令牌",
+      "Limits and performance":"限制和性能","Performance profile":"性能配置","Low":"低","Medium":"中","High":"高","Maximum concurrent clients":"最大并发客户端","Statistics and device identity":"统计和设备身份","Show usage statistics":"显示使用统计","Automatically replace rejected identity":"自动替换被拒身份",
+      "Address copied":"地址已复制","Copy":"复制","Copy failed":"复制失败","Connecting":"连接中","Cancel":"取消","Connected":"已连接","Building tunnel…":"正在建立隧道…","Starting tunnel":"正在启动隧道","Starting proxy":"正在启动代理","Starting proxies":"正在启动代理",
+      "Home":"主页","Settings":"设置","About us":"关于我们","Language":"语言","App language":"应用语言","Ready to connect":"准备连接","Tap once to open the secure tunnel":"轻触一次即可打开安全隧道","Connect":"连接","Disconnected":"已断开"
+    },
+    ja:{
+      "Connection mode":"接続モード","Standalone":"単独","Inside WARP":"WARP 内","WARP inside Psiphon":"Psiphon 内の WARP","WARP inside Tor":"Tor 内の WARP","Connection shape":"接続方式","Automatic":"自動","CDN only":"CDN のみ","Direct":"直接","Exit country":"出口国",
+      "CDN addresses":"CDN アドレス","CDN server name (SNI)":"CDN サーバー名（SNI）","Psiphon proxy address":"Psiphon プロキシアドレス","HTTP proxy for Psiphon":"Psiphon HTTP プロキシ","Custom JSON configuration file":"カスタム JSON 設定ファイル","Psiphon data directory":"Psiphon データディレクトリ","Tor":"Tor","Bridges":"ブリッジ","Always use bridges":"常にブリッジ","No bridges":"ブリッジなし","Custom bridge":"カスタムブリッジ","Bridge lines":"ブリッジ行","Bridge file":"ブリッジファイル","Transport (Pluggable Transport)":"トランスポート（Pluggable Transport）","Transport directory":"トランスポートディレクトリ",
+      "Onionoo relays":"Onionoo リレー","Relays only":"リレーのみ","Off":"オフ","Relay count (optional)":"リレー数（任意）","Relay ports":"リレーポート","Web (80 and 443)":"Web（80 と 443）","All":"すべて","WARP tunnel":"WARP トンネル","Tunnel type":"トンネル種別","Address search mode":"アドレス検索モード","Balanced":"バランス","Thorough":"詳細","Stealth":"ステルス","Verified":"検証済み","Ironclad":"最高強度",
+      "Fragment ClientHello":"ClientHello を分割","Fragment delay (ms)":"分割間隔（ms）","Fragment size (bytes)":"分割サイズ（バイト）","Quick reconnect":"高速再接続","Local proxy":"ローカルプロキシ","SOCKS5 address":"SOCKS5 アドレス","HTTP CONNECT proxy":"HTTP CONNECT プロキシ","Exit country and upstream proxy":"出口国と上流プロキシ","Exit country filter":"出口国フィルター","Upstream proxy":"上流プロキシ","Routing rules":"ルーティング規則","Block":"ブロック","Direct (without tunnel)":"直接（トンネルなし）",
+      "Zero Trust (WARP for organizations)":"Zero Trust（組織向け WARP）","Team name":"チーム名","Login method":"ログイン方法","Email code":"メールコード","Service token":"サービス トークン","Existing token":"既存トークン","Email":"メール","Service ID":"サービス ID","Service secret":"サービス シークレット","Token":"トークン","Limits and performance":"制限とパフォーマンス","Performance profile":"パフォーマンスプロファイル","Low":"低","Medium":"中","High":"高","Maximum concurrent clients":"最大同時クライアント数","Statistics and device identity":"統計とデバイス ID","Show usage statistics":"使用統計を表示","Automatically replace rejected identity":"拒否された ID を自動置換",
+      "Address copied":"アドレスをコピーしました","Copy":"コピー","Copy failed":"コピー失敗","Connecting":"接続中","Cancel":"キャンセル","Connected":"接続済み","Building tunnel…":"トンネルを構築中…","Starting tunnel":"トンネルを開始","Starting proxy":"プロキシを開始","Starting proxies":"プロキシを開始","Home":"ホーム","Settings":"設定","About us":"このアプリについて","Language":"言語","App language":"アプリの言語","Ready to connect":"接続準備完了","Tap once to open the secure tunnel":"タップして安全なトンネルを開きます","Connect":"接続","Disconnected":"切断"
+    },
+    de:{
+      "Connection mode":"Verbindungsmodus","Standalone":"Eigenständig","Inside WARP":"In WARP","WARP inside Psiphon":"WARP in Psiphon","WARP inside Tor":"WARP in Tor","Connection shape":"Verbindungsform","Automatic":"Automatisch","CDN only":"Nur CDN","Direct":"Direkt","Exit country":"Ausgangsland","CDN addresses":"CDN-Adressen","CDN server name (SNI)":"CDN-Servername (SNI)","Psiphon proxy address":"Psiphon-Proxyadresse","HTTP proxy for Psiphon":"HTTP-Proxy für Psiphon","Custom JSON configuration file":"Benutzerdefinierte JSON-Konfigurationsdatei","Psiphon data directory":"Psiphon-Datenordner","Tor":"Tor","Bridges":"Bridges","Always use bridges":"Immer Bridges verwenden","No bridges":"Keine Bridges","Custom bridge":"Benutzerdefinierte Bridge","Bridge lines":"Bridge-Zeilen","Bridge file":"Bridge-Datei","Transport (Pluggable Transport)":"Transport (Pluggable Transport)","Transport directory":"Transport-Ordner","Onionoo relays":"Onionoo-Relays","Relays only":"Nur Relays","Off":"Aus","Relay count (optional)":"Relay-Anzahl (optional)","Relay ports":"Relay-Ports","Web (80 and 443)":"Web (80 und 443)","All":"Alle","WARP tunnel":"WARP-Tunnel","Tunnel type":"Tunneltyp","Address search mode":"Adresssuchmodus","Balanced":"Ausgewogen","Thorough":"Gründlich","Stealth":"Verdeckt","Verified":"Verifiziert","Ironclad":"Maximal","Fragment ClientHello":"ClientHello fragmentieren","Fragment delay (ms)":"Fragmentverzögerung (ms)","Fragment size (bytes)":"Fragmentgröße (Bytes)","Quick reconnect":"Schnelle Wiederverbindung","Local proxy":"Lokaler Proxy","SOCKS5 address":"SOCKS5-Adresse","HTTP CONNECT proxy":"HTTP-CONNECT-Proxy","Exit country and upstream proxy":"Ausgangsland und Upstream-Proxy","Exit country filter":"Ausgangslandfilter","Upstream proxy":"Upstream-Proxy","Routing rules":"Routing-Regeln","Block":"Blockieren","Direct (without tunnel)":"Direkt (ohne Tunnel)","Zero Trust (WARP for organizations)":"Zero Trust (WARP für Organisationen)","Team name":"Teamname","Login method":"Anmeldemethode","Email code":"E-Mail-Code","Service token":"Service-Token","Existing token":"Vorhandenes Token","Email":"E-Mail","Service ID":"Service-ID","Service secret":"Service-Geheimnis","Token":"Token","Limits and performance":"Limits und Leistung","Performance profile":"Leistungsprofil","Low":"Niedrig","Medium":"Mittel","High":"Hoch","Maximum concurrent clients":"Maximale gleichzeitige Clients","Statistics and device identity":"Statistiken und Geräteidentität","Show usage statistics":"Nutzungsstatistiken anzeigen","Automatically replace rejected identity":"Abgelehnte Identität automatisch ersetzen","Address copied":"Adresse kopiert","Copy":"Kopieren","Copy failed":"Kopieren fehlgeschlagen","Connecting":"Verbindung wird hergestellt","Cancel":"Abbrechen","Connected":"Verbunden","Building tunnel…":"Tunnel wird erstellt…","Starting tunnel":"Tunnel wird gestartet","Starting proxy":"Proxy wird gestartet","Starting proxies":"Proxys werden gestartet","Home":"Startseite","Settings":"Einstellungen","About us":"Über uns","Language":"Sprache","App language":"App-Sprache","Ready to connect":"Bereit zur Verbindung","Tap once to open the secure tunnel":"Einmal tippen, um den sicheren Tunnel zu öffnen","Connect":"Verbinden","Disconnected":"Getrennt"
+    },
+    ru:{
+      "Connection mode":"Режим подключения","Standalone":"Отдельно","Inside WARP":"Внутри WARP","WARP inside Psiphon":"WARP внутри Psiphon","WARP inside Tor":"WARP внутри Tor","Connection shape":"Тип подключения","Automatic":"Автоматически","CDN only":"Только CDN","Direct":"Напрямую","Exit country":"Страна выхода","CDN addresses":"Адреса CDN","CDN server name (SNI)":"Имя CDN-сервера (SNI)","Psiphon proxy address":"Адрес прокси Psiphon","HTTP proxy for Psiphon":"HTTP-прокси Psiphon","Custom JSON configuration file":"Пользовательский JSON-файл конфигурации","Psiphon data directory":"Каталог данных Psiphon","Tor":"Tor","Bridges":"Мосты","Always use bridges":"Всегда использовать мосты","No bridges":"Без мостов","Custom bridge":"Пользовательский мост","Bridge lines":"Строки мостов","Bridge file":"Файл мостов","Transport (Pluggable Transport)":"Транспорт (Pluggable Transport)","Transport directory":"Каталог транспорта","Onionoo relays":"Реле Onionoo","Relays only":"Только реле","Off":"Выкл.","Relay count (optional)":"Количество реле (необязательно)","Relay ports":"Порты реле","Web (80 and 443)":"Web (80 и 443)","All":"Все","WARP tunnel":"Туннель WARP","Tunnel type":"Тип туннеля","Address search mode":"Режим поиска адресов","Balanced":"Сбалансированный","Thorough":"Тщательный","Stealth":"Скрытый","Verified":"Проверенный","Ironclad":"Максимальный","Fragment ClientHello":"Фрагментация ClientHello","Fragment delay (ms)":"Задержка фрагментации (мс)","Fragment size (bytes)":"Размер фрагмента (байт)","Quick reconnect":"Быстрое переподключение","Local proxy":"Локальный прокси","SOCKS5 address":"Адрес SOCKS5","HTTP CONNECT proxy":"Прокси HTTP CONNECT","Exit country and upstream proxy":"Страна выхода и вышестоящий прокси","Exit country filter":"Фильтр страны выхода","Upstream proxy":"Вышестоящий прокси","Routing rules":"Правила маршрутизации","Block":"Блокировать","Direct (without tunnel)":"Напрямую (без туннеля)","Zero Trust (WARP for organizations)":"Zero Trust (WARP для организаций)","Team name":"Имя команды","Login method":"Способ входа","Email code":"Код по электронной почте","Service token":"Токен сервиса","Existing token":"Существующий токен","Email":"Электронная почта","Service ID":"ID сервиса","Service secret":"Секрет сервиса","Token":"Токен","Limits and performance":"Ограничения и производительность","Performance profile":"Профиль производительности","Low":"Низкий","Medium":"Средний","High":"Высокий","Maximum concurrent clients":"Максимум одновременных клиентов","Statistics and device identity":"Статистика и идентификатор устройства","Show usage statistics":"Показывать статистику использования","Automatically replace rejected identity":"Автоматически заменять отклонённый идентификатор","Address copied":"Адрес скопирован","Copy":"Копировать","Copy failed":"Не удалось скопировать","Connecting":"Подключение","Cancel":"Отмена","Connected":"Подключено","Building tunnel…":"Создание туннеля…","Starting tunnel":"Запуск туннеля","Starting proxy":"Запуск прокси","Starting proxies":"Запуск прокси","Home":"Главная","Settings":"Настройки","About us":"О нас","Language":"Язык","App language":"Язык приложения","Ready to connect":"Готово к подключению","Tap once to open the secure tunnel":"Нажмите один раз, чтобы открыть защищённый туннель","Connect":"Подключить","Disconnected":"Отключено"
+    }
+  };
+
+  const rtl = new Set(["fa"]);
+  const faKeys = Object.keys(EN).sort((a,b)=>b.length-a.length);
+  const has = (o,k) => Object.prototype.hasOwnProperty.call(o,k);
+
+  // Exact whole-string lookup first. Phrase replacement is only a fallback:
+  // naive substring replacement used to cut words apart (a short word inside
+  // a longer label would get swapped, mangling the rest of the sentence),
+  // so a full sentence must never be chopped up.
+  function toEnglish(s){
+    const raw = String(s);
+    if(has(EN, raw)) return EN[raw];
+    let out = raw;
+    for(const k of faKeys) out = out.split(k).join(EN[k]);
+    return out;
+  }
+  function tr(s, lang){
+    if(lang==="fa") return s;
+    const en = toEnglish(s);
+    const map = L[lang] || {};
+    if(has(map, en)) return map[en];
+    const keys = Object.keys(map).sort((a,b)=>b.length-a.length);
+    let out = en;
+    for(const k of keys) out = out.split(k).join(map[k]);
+    return out;
+  }
+  function translateDOM(lang){
+    if(lang==="fa"){
+      location.reload(); // restore original Persian source text exactly
+      return;
+    }
+    document.documentElement.lang=lang;
+    document.documentElement.dir=rtl.has(lang)?"rtl":"ltr";
+
+    // Translate all visible text nodes, labels, buttons, summaries and
+    // option text. This covers the complete settings model after it renders.
+    const roots=[...document.querySelectorAll(".phone,.sim")];
+    if(!roots.length) return;
+    for(const root of roots){
+      const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+      const nodes=[];
+      while(walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(n=>{
+        const raw=n.nodeValue;
+        if(raw && /[\u0600-\u06ff]/.test(raw)) n.nodeValue=tr(raw,lang);
+      });
+      root.querySelectorAll("input,textarea").forEach(el=>{
+        if(el.placeholder && /[\u0600-\u06ff]/.test(el.placeholder)) el.placeholder=tr(el.placeholder,lang);
+      });
+    }
+
+    // Dynamic status/readout strings.
+    const map={
+      title:"Ready to connect",sub:"Tap once to open the secure tunnel",
+      pingLabel:"Latency (ms)",downLabel:"Download",upLabel:"Upload"
+    };
+    Object.entries(map).forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+    localStorage.setItem("aether_language",lang);
+  }
+
+  function init(){
+    const sel=document.getElementById("languageSelect");
+    const saved=localStorage.getItem("aether_language")||"fa";
+    if(sel){
+      sel.value=D[saved]?saved:"fa";
+      sel.addEventListener("change",()=>translateDOM(sel.value));
+      if(sel.value!=="fa") setTimeout(()=>translateDOM(sel.value),0);
+    }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
+  else init();
+})();
+</script>
+
+</body>
+</html>

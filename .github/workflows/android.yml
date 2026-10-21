@@ -1,0 +1,102 @@
+name: Android APK
+
+# Builds the store APK: every engine core is compiled for the three Android
+# ABIs, the app is assembled and signed with the repository's keystore, and the
+# result is uploaded as an artifact.
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Build signed APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: "stable"
+          cache: true
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: false
+
+      - name: Set up Android SDK, NDK and CMake
+        shell: bash
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;27.0.12077973" \
+            "cmake;3.22.1"
+
+      - name: Set up Rust and cargo-ndk
+        uses: dtolnay/rust-toolchain@1.98.0
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --version 4.1.2 --locked
+
+      - name: Install native host dependencies
+        run: sudo apt-get update && sudo apt-get install -y clang libclang-dev ninja-build cmake
+
+      - name: Build the engine cores
+        shell: bash
+        run: |
+          set -uo pipefail
+          chmod +x tool/ci/build_cores.sh
+          ./tool/ci/build_cores.sh
+
+      - name: Show the staged cores
+        run: find android/app/src/main/jniLibs -name '*.so' -printf '%p %k KB\n' | sort
+
+      - name: Build the app
+        run: |
+          flutter pub get
+          flutter analyze --no-fatal-infos
+          flutter build apk --release
+
+      - name: Verify the APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          test -f "$apk"
+          "${ANDROID_HOME}/build-tools/36.0.0/apksigner" verify --print-certs "$apk" | head -5
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            echo "== $abi"
+            unzip -l "$apk" | grep "lib/$abi/" || true
+          done
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: S4VPN-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
